@@ -56,11 +56,18 @@ document.getElementById("pdf-upload-form").addEventListener("submit", function(e
             console.log(responseData);
             document.getElementById("download-btn").style.display = "block";
             var docxPath = responseData.docx_path; // Save the docxPath
+            var tempDir = responseData.temp_dir; // Save the tempDir
             console.log(docxPath);
             document.getElementById("download-btn").addEventListener("click", function() {
-                console.log("Download button clicked");
-                console.log("Constructed URL:", "{% url 'download_docx' %}?docx_path=" + encodeURIComponent(docxPath));
-                window.location.href = "{% url 'download_docx' %}?docx_path=" + encodeURIComponent(docxPath);
+                console.log("Entering download function");
+                // Construct download URL
+                var downloadUrl = "{% url 'download_docx' %}?docx_path=" + encodeURIComponent(docxPath);
+                // Initiate file download
+                window.location.href = downloadUrl;
+                // Trigger cleanup after a delay (adjust as needed)
+                setTimeout(function() {
+                    cleanupTempDir(tempDir);
+                }, 5000); // 5 seconds delay (adjust as needed)
             });
         } else {
             // On failure, display error message
@@ -70,6 +77,20 @@ document.getElementById("pdf-upload-form").addEventListener("submit", function(e
     xhr.send(formData);
 });
 
+// Function to trigger temporary directory cleanup
+function cleanupTempDir(tempDir) {
+    // Send AJAX request to trigger cleanup
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", "{% url 'cleanup_temp_dir' %}?temp_dir=" + encodeURIComponent(tempDir), true);
+    xhr.onload = function() {
+        if (xhr.status >= 200 && xhr.status < 300) {
+            console.log("Temporary directory cleaned up successfully.");
+        } else {
+            console.error("Failed to clean up temporary directory.");
+        }
+    };
+    xhr.send();
+}
 </script>
 
 </body>

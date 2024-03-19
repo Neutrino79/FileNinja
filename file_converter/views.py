@@ -1,3 +1,4 @@
+import shutil
 from wsgiref.util import FileWrapper
 
 from django.shortcuts import render
@@ -39,55 +40,55 @@ def pdf_to_docx(request):
                 docx_path = os.path.join(temp_dir, 'output.docx')
                 cv = Converter(pdf_path)
                 cv.convert(docx_path, start=0, end=None)
-                #cv.close()
 
-                # Return the path to the converted DOCX file
-                print(docx_path)
-                return JsonResponse({'docx_path': docx_path})
+                # Return the path to the converted DOCX file and the temporary directory
+                return JsonResponse({'docx_path': docx_path, 'temp_dir': temp_dir})
             except Exception as e:
                 return JsonResponse({'error': str(e)}, status=500)
-            finally:
-                # Clean up temporary directory
-
-                print(docx_path)
-                '''os.unlink(pdf_path)
-                if docx_path:
-                    os.unlink(docx_path)
-                os.rmdir(temp_dir)'''
-
-
-
         else:
             return JsonResponse({'error': 'PDF file not provided.'}, status=400)
     else:
         # Render the HTML template
         return render(request, 'file_converter/pdf_to_docx.html')
 
-
 def download_docx(request):
     if 'docx_path' in request.GET:
         docx_path = request.GET['docx_path']
         if os.path.exists(docx_path):  # Check if the file exists at the specified path
-            # Use try-except block to handle any potential errors
+            # Open the file in binary mode
             try:
-                # Open the file in binary mode
                 with open(docx_path, 'rb') as f:
-                    # Use FileWrapper to wrap the file
-                    wrapper = FileWrapper(f)
-                    # Create an HttpResponse object with the file content
-                    response = HttpResponse(wrapper, content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+                    # Use FileResponse to serve the file
+                    response = HttpResponse(f, content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
                     # Set the appropriate Content-Disposition header for downloading
                     response['Content-Disposition'] = 'attachment; filename="converted_file.docx"'
                     return response  # Serve the file
             except Exception as e:
-                # Return an error response if any exception occurs
                 return HttpResponse("Error occurred while serving the file.", status=500)
         else:
-            # Return HTTP 404 if the file is not found
-            return HttpResponse("File not found.", status=404)
+            return HttpResponse("File not found.", status=404)  # Return HTTP 404 if the file is not found
     else:
-        # Return HTTP 400 if the file path is not provided
-        return HttpResponse("DOCX file path not provided.", status=400)
+        return HttpResponse("DOCX file path not provided.", status=400)  # Return HTTP 400 if the file path is not provided
+
+
+def cleanup_temp_dir(request):
+    if 'temp_dir' in request.GET:
+        temp_dir = request.GET['temp_dir']
+        try:
+            # Clean up the temporary directory
+            shutil.rmtree(temp_dir)
+
+            # Check if the directory still exists after deletion
+            if os.path.exists(temp_dir):
+                print("Failed to delete temporary directory:", temp_dir)
+            else:
+                print("Temporary directory deleted successfully:", temp_dir)
+
+            return HttpResponse("Temporary directory cleaned up successfully.")
+        except Exception as e:
+            return HttpResponse("Failed to clean up temporary directory: " + str(e), status=500)
+    else:
+        return HttpResponse("Temporary directory path not provided.", status=400)
 
 
 
