@@ -1,3 +1,5 @@
+from wsgiref.util import FileWrapper
+
 from django.shortcuts import render
 
 # Create your views here.
@@ -11,6 +13,7 @@ import tempfile
 import os
 from django.views.decorators.csrf import csrf_exempt
 from django.http import FileResponse
+
 
 @csrf_exempt
 def pdf_to_docx(request):
@@ -64,17 +67,29 @@ def pdf_to_docx(request):
 def download_docx(request):
     if 'docx_path' in request.GET:
         docx_path = request.GET['docx_path']
-        if os.path.exists(docx_path): # Check if the file exists at the specified path
-            print("exists")
-            with open(docx_path, 'rb') as f:
-                response = FileResponse(f)
-                response['Content-Disposition'] = 'attachment; filename="converted_file.docx"'
-                print("File response created successfully")
-                return response
+        if os.path.exists(docx_path):  # Check if the file exists at the specified path
+            # Use try-except block to handle any potential errors
+            try:
+                # Open the file in binary mode
+                with open(docx_path, 'rb') as f:
+                    # Use FileWrapper to wrap the file
+                    wrapper = FileWrapper(f)
+                    # Create an HttpResponse object with the file content
+                    response = HttpResponse(wrapper, content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+                    # Set the appropriate Content-Disposition header for downloading
+                    response['Content-Disposition'] = 'attachment; filename="converted_file.docx"'
+                    return response  # Serve the file
+            except Exception as e:
+                # Return an error response if any exception occurs
+                return HttpResponse("Error occurred while serving the file.", status=500)
         else:
-            return HttpResponse("File not found.", status=404)  # Return HTTP 404 if the file is not found
+            # Return HTTP 404 if the file is not found
+            return HttpResponse("File not found.", status=404)
     else:
-        return HttpResponse("DOCX file path not provided.", status=400)  # Return HTTP 400 if the file path is not provided
+        # Return HTTP 400 if the file path is not provided
+        return HttpResponse("DOCX file path not provided.", status=400)
+
+
 
 def pdf_to_ppt(request):
     # Implement PDF to PPT conversion logic here
