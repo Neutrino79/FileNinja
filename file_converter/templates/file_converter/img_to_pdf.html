@@ -40,17 +40,17 @@
 </head>
 <body>
      <div class="container">
-        <h1>Image to PDF Converter</h1>
-        <form id="upload-form">
-            <input type="file" id="image-upload" multiple accept="image/*">
-            <div id="button-container">
-                <button type="submit" class="btn btn-primary">Upload</button>
-                <button id="clear-btn" class="btn btn-danger">Clear All</button>
-            </div>
-        </form>
-        <div id="image-grid" class="d-flex flex-wrap"></div>
-         <button id="convert-btn" class="btn btn-success">Convert to PDF</button>
-
+    <h1>Image to PDF Converter</h1>
+    <form id="upload-form">
+        <input type="file" id="image-upload" multiple accept="image/*">
+        <div id="button-container">
+            <button type="submit" class="btn btn-primary">Upload</button>
+            <button id="clear-btn" class="btn btn-danger">Clear All</button>
+        </div>
+    </form>
+    <div id="image-grid" class="d-flex flex-wrap"></div>
+    <button id="convert-btn" class="btn btn-success">Convert to PDF</button>
+    <div id="download-button-container"></div>
     </div>
 
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
@@ -97,15 +97,44 @@
                 $('#image-grid').empty();
             });
 
-    // Handle convert to PDF button
-    $('#convert-btn').on('click', function() {
-        var images = $('#image-grid img').map(function() {
-            return $(this).attr('src');
-        }).get();
-        $.post('{% url 'img_to_pdf' %}', {images: images}, function(data) {
-            // TODO: Handle the response (e.g., download the PDF)
-        });
+   // Handle convert to PDF button
+$('#convert-btn').on('click', function() {
+    var images = $('#image-grid img').map(function() {
+        return {
+            src: $(this).attr('src'),
+            angle: $(this).data('angle') || 0
+        };
+    }).get();
+
+    // Get the download button, or create it if it doesn't exist
+    var downloadBtn = $('#download-btn');
+    if (downloadBtn.length === 0) {
+        downloadBtn = $('<a>').attr('id', 'download-btn').addClass('btn btn-primary').text('Download PDF');
+        $('#download-button-container').append(downloadBtn);
+    }
+
+    // Disable the download button and show a loading spinner
+    downloadBtn.addClass('disabled').html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Loading...');
+
+    $.post('{% url 'img_to_pdf' %}', {images: JSON.stringify(images)}, function(data) {
+        if (data.pdf_path) {
+            // Enable the download button, remove the spinner, and restore the original text
+            downloadBtn.removeClass('disabled').html('Download PDF');
+
+            // Update the href attribute of the download button
+            downloadBtn.attr('href', '{% url 'download_file' %}?file_path=' + data.pdf_path);
+
+            // Add a click event handler to the download button
+            downloadBtn.off('click').on('click', function(e) {
+                // Delay the cleanup by 5 seconds
+                setTimeout(function() {
+                    // Call the cleanup_temp_dir function with the temp_dir as a parameter
+                    $.get('{% url 'cleanup_temp_dir' %}?temp_dir=' + data.temp_dir);
+                }, 5000);
+            });
+        }
     });
+});
 });
     </script>
 </body>
