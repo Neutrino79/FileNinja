@@ -1,6 +1,7 @@
 import shutil
 from wsgiref.util import FileWrapper
 
+import pdf2pptx
 from django.shortcuts import render
 
 # Create your views here.
@@ -10,6 +11,7 @@ from django.shortcuts import render
 from django.http import JsonResponse, HttpResponse
 from docx import Document
 from pdf2docx import Converter
+from pdf2pptx import convert_pdf2pptx
 import tempfile
 import os
 from django.views.decorators.csrf import csrf_exempt
@@ -51,17 +53,25 @@ def pdf_to_docx(request):
         # Render the HTML template
         return render(request, 'file_converter/pdf_to_docx.html')
 
-def download_docx(request):
-    if 'docx_path' in request.GET:
-        docx_path = request.GET['docx_path']
-        if os.path.exists(docx_path):  # Check if the file exists at the specified path
+
+def download_file(request):
+    if 'file_path' in request.GET:
+        file_path = request.GET['file_path']
+        if os.path.exists(file_path):  # Check if the file exists at the specified path
             # Open the file in binary mode
             try:
-                with open(docx_path, 'rb') as f:
-                    # Use FileResponse to serve the file
-                    response = HttpResponse(f, content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+                with open(file_path, 'rb') as f:
+                    if file_path.endswith('.docx'):
+                        content_type = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+                    elif file_path.endswith('.pptx'):
+                        content_type = 'application/vnd.openxmlformats-officedocument.presentationml.presentation'
+                    else:
+                        return HttpResponse("Unsupported file format.", status=400)
+
+                        # Use FileResponse to serve the file
+                    response = HttpResponse(f, content_type=content_type)
                     # Set the appropriate Content-Disposition header for downloading
-                    response['Content-Disposition'] = 'attachment; filename="converted_file.docx"'
+                    response['Content-Disposition'] = f'attachment; filename="{os.path.basename(file_path)}"'
                     return response  # Serve the file
             except Exception as e:
                 return HttpResponse("Error occurred while serving the file.", status=500)
@@ -90,11 +100,41 @@ def cleanup_temp_dir(request):
     else:
         return HttpResponse("Temporary directory path not provided.", status=400)
 
-
-
+@csrf_exempt
 def pdf_to_ppt(request):
-    # Implement PDF to PPT conversion logic here
-    return JsonResponse({'message': 'PDF to PPT conversion completed.'})
+    if request.method == 'POST':
+        if request.FILES.get('pdf_file'):
+            pdf_file = request.FILES['pdf_file']
+
+            # Create a temporary directory to store intermediate files
+            temp_dir = tempfile.mkdtemp()
+
+            # Save the uploaded PDF file to the temporary directory
+            pdf_path = os.path.join(temp_dir, pdf_file.name)
+            with open(pdf_path, 'wb') as f:
+                for chunk in pdf_file.chunks():
+                    f.write(chunk)
+
+            # Define pptx_path with a default value
+            pptx_path = ''
+
+            # Convert PDF to PPTX
+            try:
+                # Define the output path for the PPTX file
+                pptx_path = os.path.join(temp_dir, 'output.pptx')
+
+                # Convert PDF to PPTX
+                convert_pdf2pptx(pdf_path, pptx_path, resolution=300, start_page=0, page_count=None)
+
+                # Return the path to the converted PPTX file and the temporary directory
+                return JsonResponse({'pptx_path': pptx_path, 'temp_dir': temp_dir})
+            except Exception as e:
+                return JsonResponse({'error': str(e)}, status=500)
+        else:
+            return JsonResponse({'error': 'PDF file not provided.'}, status=400)
+    else:
+        # Render the HTML template
+        return render(request, 'file_converter/pdf_to_ppt.html')
 
 
 def pdf_to_excel(request):

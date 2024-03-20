@@ -29,18 +29,18 @@
 <body>
 
 <div class="upload-form">
-    <h2>PDF to DOCX Converter</h2>
-    <form id="pdf-upload-form" enctype="multipart/form-data">
+    <h2>PDF to PPT Converter</h2>
+    <form id="PPTX-upload-form" enctype="multipart/form-data">
         {% csrf_token %}
         <input type="file" name="pdf_file" accept=".pdf" required>
-        <button type="submit">Convert to DOCX</button>
+        <button type="submit">Convert to PPT</button>
     </form>
-    <button id="download-btn" class="download-btn">Download DOCX</button>
+    <button id="download-btn" class="download-btn">Download PPT</button>
 </div>
 
 <script>
 // Function to handle form submission and AJAX request
-document.getElementById("pdf-upload-form").addEventListener("submit", function(event) {
+document.getElementById("PPTX-upload-form").addEventListener("submit", function(event) {
     event.preventDefault(); // Prevent default form submission
 
     // Create FormData object to send the file via AJAX
@@ -48,20 +48,20 @@ document.getElementById("pdf-upload-form").addEventListener("submit", function(e
 
     // Send AJAX request to the server
     var xhr = new XMLHttpRequest();
-    xhr.open("POST", "{% url 'pdf_to_docx' %}", true);
+    xhr.open("POST", "{% url 'pdf_to_ppt' %}", true);
     xhr.onload = function() {
         if (xhr.status >= 200 && xhr.status < 300) { // Check for successful status codes
             // On success, display download button and save docxPath
             var responseData = JSON.parse(xhr.responseText);
             console.log(responseData);
             document.getElementById("download-btn").style.display = "block";
-            var docxPath = responseData.docx_path; // Save the docxPath
+            var pptxPath = responseData.pptx_path; // Save the docxPath
             var tempDir = responseData.temp_dir; // Save the tempDir
-            console.log(docxPath);
+            console.log(pptxPath);
             document.getElementById("download-btn").addEventListener("click", function() {
                 console.log("Entering download function");
                 // Construct download URL
-                var downloadUrl = "{% url 'download_file' %}?file_path=" + encodeURIComponent(docxPath);
+                var downloadUrl = "{% url 'download_file' %}?file_path=" + encodeURIComponent(pptxPath);
                 // Initiate file download
                 window.location.href = downloadUrl;
                 // Trigger cleanup after a delay (adjust as needed)
