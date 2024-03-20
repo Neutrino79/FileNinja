@@ -139,9 +139,17 @@ def pdf_to_ppt(request):
 
 def pdf_to_excel(request):
     # Implement PDF to Excel conversion logic here
-    return JsonResponse({'message': 'PDF to Excel conversion completed.'})
+    return JsonResponse({'message': 'PDF to excel conversion completed.'})
 
 
 def pdf_to_image(request):
     # Implement PDF to image conversion logic here
     return JsonResponse({'message': 'PDF to image conversion completed.'})
+
+
+def img_to_pdf(request):
+    # Implement image to PDF conversion logic here
+    if request.method == 'POST':
+        pass
+    else:
+        return render(request, 'file_converter/img_to_pdf.html')

@@ -1,0 +1,112 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image to PDF Converter</title>
+    <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
+    <link href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/smoothness/jquery-ui.css" rel="stylesheet">
+    <style>
+        .image-container {
+            position: relative;
+            display: inline-block;
+            margin: 10px;
+        }
+        .image-container img {
+            max-width: 200px;
+            max-height: 200px;
+        }
+        .rotate-btn, .delete-btn {
+            position: absolute;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .rotate-btn {
+            top: 5px;
+            right: 5px;
+        }
+        .delete-btn {
+            bottom: 5px;
+            right: 5px;
+        }
+        .image-container:hover .rotate-btn, .image-container:hover .delete-btn {
+            opacity: 0.5;
+         }
+        .image-container .rotate-btn:hover, .image-container .delete-btn:hover {
+          opacity: 1;
+        }
+    </style>
+</head>
+<body>
+     <div class="container">
+        <h1>Image to PDF Converter</h1>
+        <form id="upload-form">
+            <input type="file" id="image-upload" multiple accept="image/*">
+            <div id="button-container">
+                <button type="submit" class="btn btn-primary">Upload</button>
+                <button id="clear-btn" class="btn btn-danger">Clear All</button>
+            </div>
+        </form>
+        <div id="image-grid" class="d-flex flex-wrap"></div>
+         <button id="convert-btn" class="btn btn-success">Convert to PDF</button>
+
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <script src="{% static 'js/bootstrap.min.js' %}"></script>
+    <script>
+        $(document).ready(function() {
+    // Handle file upload
+    $('#upload-form').on('submit', function(e) {
+        e.preventDefault();
+        var files = $('#image-upload')[0].files;
+        for (var i = 0; i < files.length; i++) {
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                var img = $('<img>').attr('src', e.target.result);
+                var rotateBtn = $('<button>').addClass('rotate-btn btn btn-light').text('Rotate');
+                var deleteBtn = $('<button>').addClass('delete-btn btn btn-danger').text('Delete');
+                var div = $('<div>').addClass('image-container').append(img, rotateBtn, deleteBtn);
+                $('#image-grid').append(div);
+            };
+            reader.readAsDataURL(files[i]);
+        }
+    });
+
+    // Make the image grid sortable (drag and drop)
+    $('#image-grid').sortable();
+
+    // Handle rotate buttons
+    $(document).on('click', '.rotate-btn', function() {
+        var img = $(this).siblings('img');
+        var angle = (img.data('angle') || 0) + 90;
+        img.css('transform', 'rotate(' + angle + 'deg)');
+        img.data('angle', angle);
+    });
+
+    // Handle delete buttons
+    $(document).on('click', '.delete-btn', function() {
+        $(this).parent('.image-container').remove();
+    });
+
+    // Handle clear all button
+    $('#clear-btn').on('click', function(e) {
+                e.preventDefault();
+                $('#image-grid').empty();
+            });
+
+    // Handle convert to PDF button
+    $('#convert-btn').on('click', function() {
+        var images = $('#image-grid img').map(function() {
+            return $(this).attr('src');
+        }).get();
+        $.post('{% url 'img_to_pdf' %}', {images: images}, function(data) {
+            // TODO: Handle the response (e.g., download the PDF)
+        });
+    });
+});
+    </script>
+</body>
+</html>
