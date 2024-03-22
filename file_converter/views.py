@@ -172,6 +172,11 @@ def pdf_to_excel(request):
             # Extract tables from the PDF
             tables = extract_tables_from_pdf(pdf_path)
 
+            # If no tables were found, return an error message
+            if not tables:
+                print("No tables found in the PDF.")  # Add print statement
+                return JsonResponse({'error': 'No tables found in the PDF.'}, status=400)
+
             # Convert the tables to a list of dataframes
             df_list = [pd.DataFrame(table) for table in tables]
 
