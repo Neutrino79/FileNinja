@@ -79,6 +79,8 @@ def download_file(request):
                         content_type = 'application/vnd.openxmlformats-officedocument.presentationml.presentation'
                     elif file_path.endswith('.pdf'):
                         content_type = 'application/pdf'
+                    elif file_path.endswith('.xlsx'):
+                        content_type = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
                     else:
                         return HttpResponse("Unsupported file format.", status=400)
 
@@ -188,14 +190,56 @@ def pdf_to_excel(request):
 def extract_tables_from_pdf(pdf_path):
     tables = []
     with pdfplumber.open(pdf_path) as pdf:
-        for page in pdf.pages:
+        for i, page in enumerate(pdf.pages):
+            # Extract text from the page
+            text = page.extract_text()
+
+            # Split the text into lines
+            lines = text.split('\n')
+
             # Extract tables from the page
             page_tables = page.extract_tables()
-            for table in page_tables:
-                # Transpose the table
-                transposed_table = list(map(list, zip(*table)))
-                tables.append(transposed_table)
+            for j, table in enumerate(page_tables):
+                # Find the line before the start of the table
+                table_start_line = text.find('\n'.join(table[0]))
+                previous_line_end = text.rfind('\n', 0, table_start_line)
+                previous_line_start = text.rfind('\n', 0, previous_line_end)
+                table_title = text[previous_line_start:previous_line_end].strip()
+
+                # Check if the table title is a string
+                if isinstance(table_title, str):
+                    # Append the table title and data to the tables list
+                    tables.append({'name': table_title, 'data': table})
+                else:
+                    # If the table title is not a string, generate a default table name
+                    table_name = f"Table {i+1}-{j+1}"
+                    tables.append({'name': table_name, 'data': table})
     return tables
+
+@csrf_exempt
+def tables_to_excel(request):
+    if request.method == 'POST':
+        # Load the selected tables from the request
+        selected_tables = json.loads(request.body)
+
+        # Convert the tables to dataframes
+        dfs = [pd.read_html(table)[0] for table in selected_tables]
+
+        # Create a temporary directory to store the Excel file
+        temp_dir = tempfile.mkdtemp(dir='/private/var/folders/h2/59vhr73s5t55sgq10fd9m8sc0000gn/T/File_Ninja_Temp')
+
+        # Define the path for the Excel file
+        excel_path = os.path.join(temp_dir, 'output.xlsx')
+
+        # Write the dataframes to the Excel file
+        with pd.ExcelWriter(excel_path) as writer:
+            for i, df in enumerate(dfs):
+                df.to_excel(writer, sheet_name=f'Table {i+1}')
+
+        # Return the path to the Excel file and the temp_dir
+        return JsonResponse({'excel_path': excel_path, 'temp_dir': temp_dir})
+    else:
+        return JsonResponse({'error': 'Invalid request method.'}, status=400)
 
 
 

@@ -4,19 +4,134 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PDF to Excel Converter</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+        h1 {
+            color: #444;
+            font-size: 2.5em;
+            margin-top: 1px;
+        }
+        form {
+            margin-bottom: 2em;
+        }
+        #tables-container {
+            border: 2px solid #ddd;
+            padding: 1em;
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            max-width: 80%;
+            max-height: 50%;
+            overflow: auto;
+            width: 200vw;
+            height: 150vh;
+        }
+        table {
+            margin-bottom: 20px;
+            width: 100%;
+            border-collapse: collapse;
+        }
+        td {
+            padding: 10px;
+            border: 1px solid #ddd;
+        }
+        #Convert-Selected-table {
+            background-color: #007BFF;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+        }
+        #Convert-Selected-table:hover {
+            background-color: #0056b3;
+        }
+        #Convert-Selected-table{
+            margin-top: 1em;
+        }
+        .download-button {
+    display: inline-block;
+    background-color: #007BFF;
+    color: #fff;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1em;
+    text-decoration: none;
+    margin-top: 1em;
+            margin-bottom: 1em;
+}
+
+.download-button:hover {
+    background-color: #0056b3;
+}
+
+    </style>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 </head>
 <body>
     <h1>PDF to Excel Converter</h1>
-    <form id="pdf-upload-form" enctype="multipart/form-data">
-        {% csrf_token %}
-        <input type="file" name="pdf_file" accept=".pdf" required>
-        <button type="submit">Extract Tables</button>
+    <div id="drag-drop-area">
+        <form id="pdf-upload-form" enctype="multipart/form-data">
+        <input type="file" id="pdf_file" name="pdf_file" accept=".pdf" required>
+
     </form>
-    <!-- Add this div to display the tables -->
+    <div id="buttons-container">
+        <div id="buttons-container">
+    <button id="extract-tables" type="button" class="download-button">Extract Tables</button>
+    <button id="select-all" class="download-button" disabled>Select All</button>
+    <button id="deselect-all" class="download-button" disabled>Deselect All</button>
+    <button id="clear" type="button" class="download-button">Clear</button>
+</div>
+    </div>
+    </div>
     <div id="tables-container"></div>
+    <button id="Convert-Selected-table">Convert Selected tables</button>
 <script>
-   $(document).ready(function() {
+  $(document).ready(function() {
+      var temp_dir_pdf_to_excel;
+
+      $('#Convert-Selected-table').prop('disabled', true);
+
+      $('#select-all').on('click', function() {
+        $('.table-checkbox').prop('checked', true);
+    });
+
+      $('#clear').on('click', function() {
+        $('#tables-container').empty();
+        $('#pdf-upload-form')[0].reset();
+        $('#select-all').prop('disabled', true);
+        $('#deselect-all').prop('disabled', true);
+        $('#Convert-Selected-table').prop('disabled', true);
+        $('#unique-download-button').remove();  // Remove the download button with the unique id
+
+
+    });
+
+
+    // Deselect all tables when the "Deselect All" button is clicked
+    $('#deselect-all').on('click', function() {
+        $('.table-checkbox').prop('checked', false);
+    });
+
+     $('#extract-tables').on('click', function() {
+        $('#pdf-upload-form').submit();
+    });
+
     $('#pdf-upload-form').on('submit', function(e) {
         e.preventDefault();
 
@@ -28,19 +143,19 @@
             data: formData,
             success: function(response) {
                 $('#tables-container').empty();
+                temp_dir_pdf_to_excel = response.temp_dir;
 
-                // Add a "Select All" button
-                var $selectAllButton = $('<button>').text('Select All').on('click', function() {
-                    $('.table-checkbox').prop('checked', true);
-                });
-                $('#tables-container').append($selectAllButton);
+                 // Enable the "Select All" and "Deselect All" buttons
+                $('#select-all').prop('disabled', false);
+                $('#deselect-all').prop('disabled', false);
+                $('#Convert-Selected-table').prop('disabled', false);
 
                 $.each(response.tables, function(index, table) {
                     // Create a table element with a border
                     var $table = $('<table>').css('border', '1px solid black');
 
                     // Loop through the rows in the table
-                    $.each(table, function(rowIndex, row) {
+                    $.each(table.data, function(rowIndex, row) {
                         var $tr = $('<tr>');
 
                         // Loop through the cells in the row
@@ -53,9 +168,13 @@
                         $table.append($tr);
                     });
 
+                    // Check if the table name is a string
+                    var tableName = typeof table.name === 'string' ? table.name : 'Table ' + (index + 1);
+
                     // Add a checkbox for the table
                     var $checkbox = $('<input>').attr('type', 'checkbox').addClass('table-checkbox');
-                    $('#tables-container').append($checkbox);
+                    var $label = $('<label>').text(tableName).append($checkbox);
+                    $('#tables-container').append($label);
 
                     // Append the table to the tables container
                     $('#tables-container').append($table);
@@ -64,6 +183,67 @@
             cache: false,
             contentType: false,
             processData: false
+        });
+    });
+
+    // Add event listener to the "Convert Selected tables" button
+    $('#Convert-Selected-table').on('click', function() {
+        console.log('Convert Selected tables button clicked');
+        // Gather all the selected tables
+        var selectedTables = [];
+        $('.table-checkbox:checked').each(function(index) {
+            var table = $('table').eq(index).get(0).outerHTML;
+            selectedTables.push(table);
+        });
+
+        // Send the selected tables to the server
+        $.ajax({
+            url: '/file-converter/tables_to_excel/',
+            type: 'POST',
+            data: JSON.stringify(selectedTables),
+            contentType: 'application/json',
+            success: function(response) {
+                var temp_dir_tables_to_excel = response.temp_dir;
+                $('#unique-download-button').remove();  // Remove the download button with the unique id
+                // Create a download button
+                var $downloadButton = $('<a>')
+                    .attr('href', '/file-converter/download_file/?file_path=' + encodeURIComponent(response.excel_path))
+                    .attr('download', '')
+                    .text('Download Excel File')
+                    .addClass('download-button')
+                    .attr('id', 'unique-download-button');
+                // Append the download button to the body
+                $('body').append($downloadButton);
+
+                // Call the cleanup function 5 seconds after the user clicks the download button
+                $downloadButton.on('click', function() {
+                    setTimeout(function() {
+                        // Cleanup for pdf_to_excel
+                        $.ajax({
+                            url: '/file-converter/cleanup_temp_dir/?temp_dir=' + encodeURIComponent(temp_dir_pdf_to_excel),
+                            type: 'GET',
+                            success: function(response) {
+                                console.log('Temporary directory cleaned up successfully.');
+                            },
+                            error: function(response) {
+                                console.log('Failed to clean up temporary directory: ' + response.responseText);
+                            }
+                        });
+
+                        // Cleanup for tables_to_excel
+                        $.ajax({
+                            url: '/file-converter/cleanup_temp_dir/?temp_dir=' + encodeURIComponent(temp_dir_tables_to_excel),
+                            type: 'GET',
+                            success: function(response) {
+                                console.log('Temporary directory cleaned up successfully.');
+                            },
+                            error: function(response) {
+                                console.log('Failed to clean up temporary directory: ' + response.responseText);
+                            }
+                        });
+                    }, 5000);  // 5000 milliseconds = 5 seconds
+                });
+            }
         });
     });
 });
