@@ -2,6 +2,7 @@ import shutil
 from wsgiref.util import FileWrapper
 
 import pdf2pptx
+import py
 from django.shortcuts import render
 
 # Create your views here.
@@ -20,6 +21,12 @@ import tempfile
 import os
 from django.views.decorators.csrf import csrf_exempt
 from django.http import FileResponse
+import json
+import img2pdf
+import tabula
+import pdfplumber
+import pandas as pd
+
 
 
 
@@ -107,6 +114,7 @@ def cleanup_temp_dir(request):
     else:
         return HttpResponse("Temporary directory path not provided.", status=400)
 
+
 @csrf_exempt
 def pdf_to_ppt(request):
     if request.method == 'POST':
@@ -144,19 +152,62 @@ def pdf_to_ppt(request):
         return render(request, 'file_converter/pdf_to_ppt.html')
 
 
+@csrf_exempt
 def pdf_to_excel(request):
-    # Implement PDF to Excel conversion logic here
-    return JsonResponse({'message': 'PDF to excel conversion completed.'})
+    if request.method == 'POST':
+        if request.FILES.get('pdf_file'):
+            pdf_file = request.FILES['pdf_file']
+
+            # Create a temporary directory to store the PDF file
+            temp_dir = tempfile.mkdtemp(dir='/private/var/folders/h2/59vhr73s5t55sgq10fd9m8sc0000gn/T/File_Ninja_Temp')
+
+            # Save the uploaded PDF file to the temporary directory
+            pdf_path = os.path.join(temp_dir, pdf_file.name)
+            with open(pdf_path, 'wb') as f:
+                for chunk in pdf_file.chunks():
+                    f.write(chunk)
+
+            # Extract tables from the PDF
+            tables = extract_tables_from_pdf(pdf_path)
+
+            # Convert the tables to a list of dataframes
+            df_list = [pd.DataFrame(table) for table in tables]
+
+            # Convert the dataframes to dictionaries
+            df_dict_list = [df.to_dict() for df in df_list]
+
+            # Return the dictionaries as JSON
+            return JsonResponse({'tables': df_dict_list, 'temp_dir': temp_dir})
+        else:
+            return JsonResponse({'error': 'PDF file not provided.'}, status=400)
+    else:
+        # Render the HTML template
+        return render(request, 'file_converter/pdf_to_excel.html')
 
 
+def extract_tables_from_pdf(pdf_path):
+    tables = []
+    with pdfplumber.open(pdf_path) as pdf:
+        for page in pdf.pages:
+            # Extract tables from the page
+            page_tables = page.extract_tables()
+            for table in page_tables:
+                # Transpose the table
+                transposed_table = list(map(list, zip(*table)))
+                tables.append(transposed_table)
+    return tables
+
+
+
+@csrf_exempt
 def pdf_to_image(request):
     # Implement PDF to image conversion logic here
     return JsonResponse({'message': 'PDF to image conversion completed.'})
 
 
 
-import json
-import img2pdf
+
+
 
 @csrf_exempt
 def img_to_pdf(request):

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF to Excel Converter</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+</head>
+<body>
+    <h1>PDF to Excel Converter</h1>
+    <form id="pdf-upload-form" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="file" name="pdf_file" accept=".pdf" required>
+        <button type="submit">Extract Tables</button>
+    </form>
+    <!-- Add this div to display the tables -->
+    <div id="tables-container"></div>
+<script>
+   $(document).ready(function() {
+    $('#pdf-upload-form').on('submit', function(e) {
+        e.preventDefault();
+
+        var formData = new FormData(this);
+
+        $.ajax({
+            url: '/file-converter/pdf_to_excel/',
+            type: 'POST',
+            data: formData,
+            success: function(response) {
+                $('#tables-container').empty();
+
+                // Add a "Select All" button
+                var $selectAllButton = $('<button>').text('Select All').on('click', function() {
+                    $('.table-checkbox').prop('checked', true);
+                });
+                $('#tables-container').append($selectAllButton);
+
+                $.each(response.tables, function(index, table) {
+                    // Create a table element with a border
+                    var $table = $('<table>').css('border', '1px solid black');
+
+                    // Loop through the rows in the table
+                    $.each(table, function(rowIndex, row) {
+                        var $tr = $('<tr>');
+
+                        // Loop through the cells in the row
+                        $.each(row, function(cellIndex, cell) {
+                            // Create a cell element with a border and append it to the row
+                            var $td = $('<td>').text(cell).css('border', '1px solid black');
+                            $tr.append($td);
+                        });
+
+                        $table.append($tr);
+                    });
+
+                    // Add a checkbox for the table
+                    var $checkbox = $('<input>').attr('type', 'checkbox').addClass('table-checkbox');
+                    $('#tables-container').append($checkbox);
+
+                    // Append the table to the tables container
+                    $('#tables-container').append($table);
+                });
+            },
+            cache: false,
+            contentType: false,
+            processData: false
+        });
+    });
+});
+</script>
+</body>
+</html>
