@@ -8,6 +8,9 @@ import os
 from django.views.decorators.csrf import csrf_exempt
 
 import shutil
+from PyPDF2 import PdfFileReader
+
+
 
 @csrf_exempt
 def cleanup(request):
@@ -52,3 +55,13 @@ def pdf_merge(request):
         return response
     else:
         return render(request, 'file_manipulation/pdf_merge.html')
+
+
+@csrf_exempt
+def pdf_split(request):
+    if request.method == 'POST':
+        pass
+
+
+    else:
+        return render(request, 'file_manipulation/pdf_split.html')

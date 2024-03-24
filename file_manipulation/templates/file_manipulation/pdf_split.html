@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Splitter</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+        h1 {
+            color: #444;
+            font-size: 2.5em;
+            margin-top: 1px;
+        }
+        form {
+            margin-bottom: 2em;
+        }
+        #parent-container {
+    display: flex;
+    justify-content: space-between;
+            height: 50vh;
+            border: 2px solid #ddd;
+            width: 63vw;
+}
+        #pdf-container, #pdf-controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: row;
+            flex-wrap: wrap;
+
+            border: 2px solid #ddd;
+            padding: 1em;
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            max-width: 50%;
+            max-height: 92%;
+            overflow: auto;
+            width: 60vw;
+            height: 90vh;
+        }
+
+        .download-button {
+    display: inline-block;
+    background-color: #007BFF;
+    color: #fff;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1em;
+    text-decoration: none;
+    margin-top: 1em;
+            margin-bottom: 1em;
+}
+
+.download-button:hover {
+    background-color: #0056b3;
+}
+
+    #drag-drop-area {
+    border: 2px dashed #000;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+        height: 100px;
+        width: 60%;
+    overflow: hidden;
+}
+   #Split_pdf {
+            background-color: #007BFF;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+        }
+        #Split_pdf:hover {
+            background-color: #0056b3;
+        }
+        #Split_pdf{
+            margin-top: 1em;
+        }
+        .dragover {
+    cursor: copy;
+}
+       /* embed {
+    pointer-events: none;
+} */
+        .pdf-name {
+    position: relative;
+    white-space: nowrap;
+    overflow: hidden;
+    max-width: 100mm;
+    user-select: none;
+    -webkit-user-drag: none;
+    text-align: center;  /* Align the text to the center */
+}
+    #split-option {
+    color: black; /* Change this to any color you want */
+    background-color: white; /* Change this to any color you want */
+        border: 1px solid #1a1d20 ;
+}
+#pdf-controls {
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+#split-option {
+    order: -1;
+    margin-bottom: 10px;
+}
+
+label {
+    order: -2;
+    margin-bottom: 10px;
+}
+
+    </style>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.10.2/Sortable.min.js"></script>
+</head>
+<body>
+    <h1>PDF Splitter</h1>
+    <div id="drag-drop-area">
+        <p>Drag and drop your PDF file here, or click to select file</p>
+        <form id="pdf-upload-form" enctype="multipart/form-data">
+        <input type="file" id="pdf_file" name="pdf_file[]" accept=".pdf"  required>
+    </form>
+    </div>
+        <div id="buttons-container">
+    <button id="clear" type="button" class="download-button">Clear</button>
+</div>
+    <div id="parent-container">
+    <div id="pdf-container"></div>
+    <div id="pdf-controls">
+    <label for="split-option">Splitting Mode:</label>
+    <select id="split-option" class="download-button">
+    <option value="" selected>Select a mode</option>
+    <option value="every-page">Split Every Page</option>
+    <option value="range">Split by Range</option>
+    </select>
+</div>
+    </div>
+    <button id="Split_pdf">Split PDF</button>
+<script>
+    var clearButton = document.getElementById('clear');
+    var fileInput = document.getElementById('pdf_file');
+    var splitOptionMenu = document.getElementById('split-option');
+    splitOptionMenu.disabled = true;
+    var dragDropArea = document.querySelector('#drag-drop-area');
+    var pdfContainer = document.querySelector('#pdf-container');
+    dragDropArea.addEventListener('dragover', function(e) {
+    e.preventDefault();
+    dragDropArea.classList.add('dragover');
+    });
+
+    dragDropArea.addEventListener('dragleave', function(e) {
+    dragDropArea.classList.remove('dragover');
+    });
+
+    dragDropArea.addEventListener('drop', function(e) {
+    e.preventDefault();
+    // Get the files from the event
+    var files = e.dataTransfer.files;
+    // Process the first file
+    if (files.length > 0) {
+        processFile(files[0]);
+    }
+    });
+
+
+document.addEventListener('DOMContentLoaded', function() {
+    var splitOptionMenu = document.getElementById('split-option');
+    var pdfControls = document.getElementById('pdf-controls');
+    var addButton = document.createElement('button');
+    addButton.textContent = 'Add';
+    var deleteButton = document.createElement('button');
+    deleteButton.textContent = 'Delete';
+    var pdfCount = 1;
+
+    function createRangeInputs() {
+    // Create a div to hold the range inputs
+    var div = document.createElement('div');
+    div.id = 'pdf' + pdfCount;
+
+    // Create a label for the range inputs
+    var label = document.createElement('label');
+    label.textContent = 'PDF' + pdfCount;
+    div.appendChild(label);
+
+    // Create the range input boxes
+    var startRangeInput = document.createElement('input');
+    startRangeInput.type = 'text';
+    startRangeInput.placeholder = 'Start';
+    startRangeInput.style.width = '50px'; // Set the width of the input box
+
+    var endRangeInput = document.createElement('input');
+    endRangeInput.type = 'text';
+    endRangeInput.placeholder = 'End';
+    endRangeInput.style.width = '50px'; // Set the width of the input box
+
+    // Append the range input boxes to the div
+    div.appendChild(startRangeInput);
+    div.appendChild(endRangeInput);
+
+    // Append the div to the pdf-controls div
+    pdfControls.appendChild(div);
+
+    pdfCount++;
+}
+
+    addButton.addEventListener('click', function() {
+        createRangeInputs();
+    });
+
+    deleteButton.addEventListener('click', function() {
+        if (pdfCount > 3) {
+            var div = document.getElementById('pdf' + (pdfCount - 1));
+            div.remove();
+            pdfCount--;
+        }
+    });
+
+
+
+    splitOptionMenu.addEventListener('change', function() {
+    // Get all the child elements in the pdf-controls div
+    var children = pdfControls.children;
+
+    // Loop through the child elements
+    for (var i = children.length - 1; i >= 0; i--) {
+        // If the child element is not the select option or its label, remove it
+        if (children[i] !== splitOptionMenu && children[i].tagName !== 'LABEL') {
+            children[i].remove();
+        }
+    }
+
+    if (splitOptionMenu.value === 'every-page') {
+        // Do nothing
+    } else if (splitOptionMenu.value === 'range') {
+            pdfCount = 1;
+            pdfControls.appendChild(addButton);
+            pdfControls.appendChild(deleteButton);
+
+            // Create the initial range input boxes
+            createRangeInputs();
+            createRangeInputs();
+        }
+});
+
+});
+
+
+fileInput.addEventListener('change', function(e) {
+        // Get the files from the event
+        var files = e.target.files;
+
+        // Process the first file
+        if (files.length > 0) {
+            processFile(files[0]);
+        }
+    });
+
+
+clearButton.addEventListener('click', function() {
+        console.log('Clear button clicked');
+        location.reload();
+    });
+fileInput.addEventListener('change', function(e) {
+        // Get the files from the event
+        var files = e.target.files;
+
+        // Process the first file
+        if (files.length > 0) {
+            processFile(files[0]);
+        }
+    });
+
+function createRangeInputs() {
+        // Create a div to hold the range inputs
+        var div = document.createElement('div');
+        div.id = 'pdf' + pdfCount;
+
+        // Create the range input boxes
+        var startRangeInput = document.createElement('input');
+        startRangeInput.type = 'text';
+        startRangeInput.placeholder = 'Start range for PDF ' + pdfCount;
+
+        var endRangeInput = document.createElement('input');
+        endRangeInput.type = 'text';
+        endRangeInput.placeholder = 'End range for PDF ' + pdfCount;
+
+        // Append the range input boxes to the div
+        div.appendChild(startRangeInput);
+        div.appendChild(endRangeInput);
+
+        // Append the div to the pdf-controls div
+        pdfControls.appendChild(div);
+
+        pdfCount++;
+    }
+
+    document.getElementById('Split_pdf').addEventListener('click', function() {
+    var splitOption = document.getElementById('split-option').value;
+    var pageRanges = [];
+
+    if (splitOption === 'range') {
+        var rangeInputs = document.querySelectorAll('#pdf-controls div');
+
+        for (var i = 0; i < rangeInputs.length; i++) {
+            var startRange = rangeInputs[i].querySelectorAll('input')[0].value;
+            var endRange = rangeInputs[i].querySelectorAll('input')[1].value;
+
+            if (startRange && endRange) {
+                pageRanges.push([parseInt(startRange), parseInt(endRange)]);
+            }
+        }
+    }
+
+    var formData = new FormData();
+    formData.append('splitOption', splitOption);
+    formData.append('pageRanges', JSON.stringify(pageRanges));
+
+    var fileInput = document.getElementById('pdf_file');
+    formData.append('file', fileInput.files[0]);
+
+    fetch('/file_manipulation/pdf_split/', {
+        method: 'POST',
+        body: formData
+    })
+    .then(function(response) {
+        // Handle the response
+    })
+    .catch(function(error) {
+        console.error('Error:', error);
+    });
+});
+
+function processFile(file) {
+    var reader = new FileReader();
+
+    reader.onload = function(e) {
+        // Create a Blob from the file data
+        var blob = new Blob([e.target.result], {type: 'application/pdf'});
+
+        // Create a Blob URL
+        var url = URL.createObjectURL(blob);
+
+        // Create a div element to hold the PDF and its name
+        var div = document.createElement('div');
+        div.style.flexDirection = 'column';  // Add this line
+        div.style.height='75mm';
+
+        // Create a p element to display the file name
+        var p = document.createElement('p');
+        p.textContent = file.name;
+        p.style.marginTop = '-60px';
+
+        // Create an iframe element to display the PDF
+        var iframe = document.createElement('iframe');
+        iframe.src = url;
+        iframe.width = '200mm';  // A4 width
+        iframe.height = '280mm';  // A4 height
+        iframe.style.marginTop = '-10px';
+
+        // Add the p and iframe elements to the div
+        div.appendChild(p);
+        div.appendChild(iframe);
+
+        // Add the div element to the pdf-container
+        var pdfContainer = document.querySelector('#pdf-container');
+        pdfContainer.appendChild(div);
+        splitOptionMenu.disabled = false;
+    };
+
+    reader.onerror = function(e) {
+        console.error('FileReader error:', e);  // Log any errors that occur during the read operation
+    };
+
+    reader.readAsArrayBuffer(file);
+}
+</script>
+</body>
+</html>
