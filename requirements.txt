@@ -10,3 +10,4 @@ image2pdf
 Django~=4.2.11
 img2pdf~=0.5.1
 pandas~=2.2.1
+pypdf2~=2.12.1

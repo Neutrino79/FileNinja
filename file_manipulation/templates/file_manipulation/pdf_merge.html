@@ -2,9 +2,330 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF to Excel Converter</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+        h1 {
+            color: #444;
+            font-size: 2.5em;
+            margin-top: 1px;
+        }
+        form {
+            margin-bottom: 2em;
+        }
+        #pdf-container {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            justify-content: flex-start;
+            align-items: flex-start;
+            border: 2px solid #ddd;
+            padding: 1em;
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            max-width: 80%;
+            max-height: 50%;
+            overflow: auto;
+            width: 200vw;
+            height: 150vh;
+        }
+
+        .download-button {
+    display: inline-block;
+    background-color: #007BFF;
+    color: #fff;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1em;
+    text-decoration: none;
+    margin-top: 1em;
+            margin-bottom: 1em;
+}
+
+.download-button:hover {
+    background-color: #0056b3;
+}
+
+    #drag-drop-area {
+    border: 2px dashed #000;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+        height: 100px;
+        width: 60%;
+    overflow: hidden;
+}
+   #Merge_pdf {
+            background-color: #007BFF;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+        }
+        #Merge_pdf:hover {
+            background-color: #0056b3;
+        }
+        #Merge_pdf{
+            margin-top: 1em;
+        }
+        .dragover {
+    cursor: copy;
+}
+        embed {
+    pointer-events: none;
+}
+        .pdf-name {
+    position: relative;
+    white-space: nowrap;
+    overflow: hidden;
+    max-width: 100mm;
+    user-select: none;
+    -webkit-user-drag: none;
+    text-align: center;  /* Align the text to the center */
+}
+
+
+    </style>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.10.2/Sortable.min.js"></script>
+    <script src="https://mozilla.github.io/pdf.js/build/pdf.js"></script>
 </head>
 <body>
-        <h1>PDF merging</h1>
+    <h1>PDF merger</h1>
+    <div id="drag-drop-area">
+        <p>Drag and drop your PDF file here, or click to select file</p>
+        <form id="pdf-upload-form" enctype="multipart/form-data">
+        <input type="file" id="pdf_file" name="pdf_file[]" accept=".pdf" multiple required>
+    </form>
+    </div>
+        <div id="buttons-container">
+    <button id="clear" type="button" class="download-button">Clear</button>
+</div>
+    <div id="pdf-container"></div>
+    <button id="Merge_pdf">merge PDF</button>
+<script>
+    var fileMap = new Map();
+// Select the drag and drop area, file input, PDF container, and merge button
+var dragDropArea = document.querySelector('#drag-drop-area');
+var fileInput = document.querySelector('#pdf_file');
+var pdfContainer = document.querySelector('#pdf-container');
+
+// Add event listeners for the drag and drop area
+dragDropArea.addEventListener('dragover', function(e) {
+    e.preventDefault();
+    dragDropArea.classList.add('dragover');
+});
+
+dragDropArea.addEventListener('dragleave', function(e) {
+    dragDropArea.classList.remove('dragover');
+});
+
+dragDropArea.addEventListener('drop', function(e) {
+    e.preventDefault();
+
+    // Get the files from the event
+    var files = e.dataTransfer.files;
+
+    // Process the files
+    processFiles(files);
+});
+
+// Add an event listener for the file input
+fileInput.addEventListener('change', function(e) {
+    // Get the files from the event
+    var files = e.target.files;
+
+    // Process the files
+    processFiles(files);
+});
+
+
+
+var clearButton = document.getElementById('clear');
+
+// Add an event listener for the clear button
+clearButton.addEventListener('click', function() {
+    location.reload();
+    checkPdfContainer();
+});
+
+
+
+function processFiles(files) {
+    // Check if the file type of the first file is 'application/pdf'
+    if (files[0].type !== 'application/pdf') {
+        // If the file type is not 'application/pdf', show an alert and clear the file input
+        alert('Please drop a PDF file.');
+        fileInput.value = '';
+    } else {
+        // Process each file
+        for (var i = 0; i < files.length; i++) {
+            (function (file) {
+
+
+                // Only process PDF files
+                if (file.type === 'application/pdf') {
+                    // Create a FileReader to read the contents of the file
+                    var reader = new FileReader();
+
+                    reader.onload = function (e) {
+                        // Create a Blob from the file data
+                        var blob = new Blob([e.target.result], {type: 'application/pdf'});
+
+                        // Create a Blob URL
+                        var url = URL.createObjectURL(blob);
+
+                        // Create a div element to hold the PDF and its name
+                        var div = document.createElement('div');
+                        div.style.border = '1px solid black';  // Add a border to the div
+                        div.style.width = '53mm';  // Set a fixed width for the div
+                        div.style.position = 'relative';  // Set position to relative to position the remove button
+                        div.style.overflow = 'auto';  // Add scrollbars if the PDF is too large
+                        div.style.margin = '5px';  // Add margin around the div
+
+                        // Create an embed element to display the PDF
+                        var embed = document.createElement('embed');
+                        embed.src = url + '#toolbar=0';  // Add '#toolbar=0' to hide the toolbar
+                        embed.type = 'application/pdf';
+                        embed.width = '200mm';  // A4 width
+                        embed.height = '297mm';  // A4 height
+
+
+                        // Add the embed element to the div
+                        div.appendChild(embed);
+
+                        // Create a p element to display the file name
+                        var p = document.createElement('p');
+                        p.textContent = file.name;
+                        p.className = 'pdf-name';
+
+
+                        // Add the p element to the div
+                        div.appendChild(p);
+
+
+                        // Create a button element to remove the PDF
+                        var button = document.createElement('button');
+                        button.textContent = 'Remove';
+                        button.style.position = 'absolute';  // Position the button over the PDF
+                        button.style.top = '0';
+                        button.style.right = '0';
+                        button.addEventListener('click', function () {
+                                // Remove the div element from the PDF container
+                                pdfContainer.removeChild(div)
+                            }
+                        );
+
+                        // Add the button element to the div
+                        div.appendChild(button);
+
+                        // Add the div element to the PDF container
+                        pdfContainer.appendChild(div);
+                        fileMap.set(div, file)
+                        checkPdfContainer();
+                    };
+
+                    // Create a new Sortable instance for the PDF container
+                    new Sortable(pdfContainer, {
+                        animation: 150,
+                        ghostClass: 'sortable-ghost'
+                    });
+
+                    reader.readAsArrayBuffer(file);
+                }
+            })(files[i]);
+        }
+    }
+
+    // Remove the 'dragover' class
+    dragDropArea.classList.remove('dragover');
+
+}
+
+// Select the merge button
+var mergeButton = document.getElementById('Merge_pdf');
+mergeButton.disabled = true;
+
+function checkPdfContainer() {
+    if (pdfContainer.childElementCount > 0) {
+        // If there are child elements, enable the merge button
+        mergeButton.disabled = false;
+    } else {
+        // If there are no child elements, disable the merge button
+        mergeButton.disabled = true;
+    }
+}
+
+// Add an event listener for the merge button
+mergeButton.addEventListener('click', function() {
+    // Replace the merge button with a loading symbol
+    var loadingSymbol = document.createElement('div');
+    loadingSymbol.classList.add('loading-symbol');
+    mergeButton.parentNode.replaceChild(loadingSymbol, mergeButton);
+
+    // Get all the div elements in the PDF container
+    var divs = pdfContainer.querySelectorAll('div');
+
+    // Create a new FormData object
+    var formData = new FormData();
+
+    // Append each file to the FormData object in the order they appear in the container
+    for (var i = 0; i < divs.length; i++) {
+        var div = divs[i];
+        var file = fileMap.get(div);
+        formData.append('files[]', file);
+    }
+    var temp_dir;
+    // Send a POST request to the server to merge the PDFs
+    fetch('/file_manipulation/pdf_merge/', {
+        method: 'POST',
+        body: formData
+    })
+    .then(function(response) {
+        temp_dir = response.headers.get('temp_dir');
+        return response.blob();
+    })
+    .then(function(blob) {
+        // Create a Blob URL
+        var url = URL.createObjectURL(blob);
+
+        // Replace the loading symbol with a download button
+        var downloadButton = document.createElement('a');
+        downloadButton.classList.add('download-button');
+        downloadButton.textContent = 'Download Merged PDF';
+        downloadButton.href = url;
+        downloadButton.download = 'merged.pdf';
+        loadingSymbol.parentNode.replaceChild(downloadButton, loadingSymbol);
+
+      setTimeout(function() {
+        fetch('/file_manipulation/cleanup/', {
+            method: 'POST',
+            body: JSON.stringify({ 'temp_dir': temp_dir })
+        });
+    }, 5000);
+});
+});
+
+</script>
 </body>
 </html>

@@ -115,11 +115,7 @@
     <div id="tables-container"></div>
     <button id="Convert-Selected-table">Convert Selected tables</button>
 <script>
-  $(document).ready(function() {
-      var temp_dir_pdf_to_excel;
-
-
-      var $dragDropArea = $('#drag-drop-area');
+    var $dragDropArea = $('#drag-drop-area');
     var $fileInput = $('#pdf_file');
 
     // When a file is dragged over the drag and drop area, add a class to it
@@ -138,19 +134,30 @@
 
     // When a file is dropped onto the drag and drop area, retrieve the file and trigger the file input's change event
     $dragDropArea.on('drop', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        $dragDropArea.removeClass('dragging');
+    e.preventDefault();
+    e.stopPropagation();
+    $dragDropArea.removeClass('dragging');
 
-        var files = e.originalEvent.dataTransfer.files;
+    var files = e.originalEvent.dataTransfer.files;
+
+    // Check if the file type of the first file is 'application/pdf'
+    if (files[0].type !== 'application/pdf') {
+        // If the file type is not 'application/pdf', show an alert and clear the file input
+        alert('Please drop a PDF file.');
+        $fileInput.val('');
+    } else {
+        // If the file type is 'application/pdf', trigger the file input's change event
         $fileInput.prop('files', files);
         $fileInput.trigger('change');
-    });
+    }
+});
 
     // When the drag and drop area is clicked, trigger the file input's click event
     $dragDropArea.on('click', function() {
         $fileInput.trigger('click');
     });
+  $(document).ready(function() {
+      var temp_dir_pdf_to_excel;
 
 
       $('#Convert-Selected-table').prop('disabled', true);
