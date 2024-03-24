@@ -1,7 +1,7 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
-<head>now i want t
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard</title>
@@ -27,23 +27,30 @@
           <a class="nav-link" href="#">Link</a>
         </li>
         <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+           <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
             File Conversions
-          </a>
+           </a>
           <ul class="dropdown-menu">
             <li><a class="dropdown-item" href="{% url 'pdf_to_docx' %}">PDF to DOCX</a></li>
             <li><a class="dropdown-item" href="{% url 'pdf_to_ppt' %}">PDF to PPTX</a></li>
               <li><a class="dropdown-item" href="{% url 'img_to_pdf' %}">IMG to PDF</a></li>
               <li><a class="dropdown-item" href="{% url 'pdf_to_excel' %}">PDF to EXCEL</a></li>
             <li><hr class="dropdown-divider"></li>
-            <li><a class="dropdown-item" href="#">Something else here</a></li>
+            <li><a class="dropdown-item" href="#">New incoming</a></li>
           </ul>
         </li>
-        <li class="nav-item">
-          <a class="nav-link disabled" aria-disabled="true">Disabled</a>
+        <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            File Manipulation
+          </a>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="{% url 'pdf_merge' %}">PDF Merging</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" href="#">New incoming</a></li>
+          </ul>
         </li>
-      </ul>
-      <form class="d-flex" role="search">
+          </ul>
+         <form class="d-flex" role="search">
         <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
         <button class="btn btn-outline-success" type="submit">Search</button>
       </form>

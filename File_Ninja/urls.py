@@ -26,5 +26,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', views.home, name='home'),
     path('file-converter/', include('file_converter.urls')),
+    path('file_manipulation/', include('file_manipulation.urls')),
 
 ]
