@@ -87,21 +87,7 @@
         width: 60%;
     overflow: hidden;
 }
-        .dragover {
-    cursor: copy;
-}
-       /* embed {
-    pointer-events: none;
-} */
-        .pdf-name {
-    position: relative;
-    white-space: nowrap;
-    overflow: hidden;
-    max-width: 100mm;
-    user-select: none;
-    -webkit-user-drag: none;
-    text-align: center;  /* Align the text to the center */
-}
+
 
 #pdf-controls {
     flex-direction: column;
@@ -163,7 +149,7 @@ label {
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.6.347/pdf.min.js" integrity="sha512-Z8CqofpIcnJN80feS2uccz+pXWgZzeKxDsDNMD/dJ6997/LSRY+W4NmEt9acwR+Gt9OHN0kkI1CTianCwoqcjQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 </head>
 <body>
-    <h1>PDF Compressor</h1>
+    <h1>FILE Compressor</h1>
     <div id="drag-drop-area">
         <p>Drag and drop your PDF file here, or click to select file</p>
         <form id="pdf-upload-form" enctype="multipart/form-data">
@@ -387,6 +373,19 @@ downloadButton.addEventListener('click', function() {
         a.click();
         // Remove the anchor element from the body
         document.body.removeChild(a);
+
+        setTimeout(function() {
+            // Make an AJAX request to the Django backend
+            fetch('/file_manipulation/cleanup/', {method: 'POST'})
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => console.log('Cleanup successful:', data))
+            .catch(error => console.error('Error:', error));
+        }, 5000);
     }
 });
 

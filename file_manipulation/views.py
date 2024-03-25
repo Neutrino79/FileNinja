@@ -16,14 +16,28 @@ import subprocess
 @csrf_exempt
 def cleanup(request):
     if request.method == 'POST':
-        # Load the temp_dir from the request
-        temp_dir = json.loads(request.body)['temp_dir']
-        print("deleting temp dir: ", temp_dir)
-        # Delete the temporary directory
-        shutil.rmtree(temp_dir)
+        if not request.body:
+            print("making sure to clear the temp dir")
+            dir_path = "/private/var/folders/h2/59vhr73s5t55sgq10fd9m8sc0000gn/T/File_Ninja_Temp"
+            # Iterate over all directories in the directory and remove them
+            for filename in os.listdir(dir_path):
+                file_path = os.path.join(dir_path, filename)
+                try:
+                    if os.path.isdir(file_path):
+                        shutil.rmtree(file_path)
+                except Exception as e:
+                    print('Failed to delete %s. Reason: %s' % (file_path, e))
 
-        print('Temporary directory deleted.')
-        return JsonResponse({'message': 'Temporary directory deleted.'})
+            print('All directories in the directory have been deleted.')
+            return JsonResponse({'message': 'All directories in the directory have been deleted.'})
+        else:
+            # Load the temp_dir from the request
+            temp_dir = json.loads(request.body)['temp_dir']
+            print("deleting temp dir: ", temp_dir)
+            # Delete the temporary directory
+            shutil.rmtree(temp_dir)
+            print('Temporary directory deleted.')
+            return JsonResponse({'message': 'Temporary directory deleted.'})
     else:
         print("Temp dir not deleted")
         return JsonResponse({'message': 'Temporary directory not deleted.'})
