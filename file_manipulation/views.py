@@ -67,7 +67,10 @@ def pdf_split(request):
 
         # Create a PdfFileReader object from the uploaded file
         pdf = PdfFileReader(uploaded_file)
-
+        total_pages = pdf.getNumPages()
+        for start, end in page_ranges:
+            if start < 1 or end > total_pages:
+                return JsonResponse({'error': 'Page range is outside the total number of pages.'}, status=400)
         # Create a temporary directory to store the split PDF files
         temp_dir = tempfile.mkdtemp(dir='/private/var/folders/h2/59vhr73s5t55sgq10fd9m8sc0000gn/T/File_Ninja_Temp')
 

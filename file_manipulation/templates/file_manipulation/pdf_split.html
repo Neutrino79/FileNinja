@@ -159,7 +159,7 @@ label {
 </div>
     </div>
     <button id="Split_pdf">Split PDF</button>
-    <button id="download-button" class="download-button" disabled>Download</button>
+    <button id="download-button" class="download-button" disabled style="display: none;">Download</button>
     <div id="loading-animation" style="display: none;">Loading...</div>
 <script>
     var clearButton = document.getElementById('clear');
@@ -168,6 +168,10 @@ label {
     splitOptionMenu.disabled = true;
     var dragDropArea = document.querySelector('#drag-drop-area');
     var pdfContainer = document.querySelector('#pdf-container');
+
+    var loadingAnimation = document.getElementById('loading-animation');
+
+
     dragDropArea.addEventListener('dragover', function(e) {
     e.preventDefault();
     dragDropArea.classList.add('dragover');
@@ -322,6 +326,8 @@ function createRangeInputs() {
 
     // Add this to your JavaScript
 document.getElementById('Split_pdf').addEventListener('click', function() {
+    this.style.display = 'none';
+    loadingAnimation.style.display = 'block';
     var splitOption = document.getElementById('split-option').value;
     var pageRanges = [];
 
@@ -331,9 +337,14 @@ document.getElementById('Split_pdf').addEventListener('click', function() {
             var startRange = rangeInputs[i].querySelectorAll('input')[0].value;
             var endRange = rangeInputs[i].querySelectorAll('input')[1].value;
 
-            if (startRange && endRange) {
-                pageRanges.push([parseInt(startRange), parseInt(endRange)]);
+            if (!startRange || !endRange) {
+                alert('Please input both start and end range for all ranges.');
+                this.style.display = 'block';
+                loadingAnimation.style.display = 'none';
+                return;
             }
+
+            pageRanges.push([parseInt(startRange), parseInt(endRange)]);
         }
     }
 
@@ -364,31 +375,40 @@ document.getElementById('Split_pdf').addEventListener('click', function() {
                 method: 'POST',
                 body: formData
             })
-            .then(function(response) {
-    // Stop the loading animation and enable the download button
-    document.getElementById('download-button').disabled = false;
-    document.getElementById('loading-animation').style.display = 'none';
+            .then(function(response)
+            {
+                 loadingAnimation.style.display = 'none';
+                if (!response.ok) {
+                    return response.json().then(function(json) {
+                        throw new Error(json.error);
+                    });
+                }
+                // Read the response body as a Blob
+                return response.blob().then(function(blob) {
+                    // Create a Blob URL from the Blob
+                    var url = URL.createObjectURL(blob);
+                   var downloadButton = document.createElement('a');
+                    downloadButton.classList.add('download-button');
+                    downloadButton.textContent = 'Download Splitted PDF';
+                    downloadButton.href = url;
+                    downloadButton.download = 'splited.zip';
+                    loadingAnimation.parentNode.replaceChild(downloadButton, loadingAnimation);
 
-    // Read the response body as a Blob
-    return response.blob().then(function(blob) {
-        // Create a Blob URL from the Blob
-        var url = URL.createObjectURL(blob);
+                    downloadButton.addEventListener('click', function() {
+                    console.log('Download button clicked');
+                     });
+                    // Get the temp_dir from the response headers
+                    var temp_dir = response.headers.get('temp_dir');
 
-        // Set the href attribute of the download button to the Blob URL
-        document.getElementById('download-button').href = url;
-
-        // Get the temp_dir from the response headers
-        var temp_dir = response.headers.get('temp_dir');
-
-        // After 5 seconds, send a POST request to the cleanup endpoint to delete the temp_dir
-        setTimeout(function() {
-            fetch('/file_manipulation/cleanup/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ temp_dir: temp_dir })
-                        })
+                    // After 5 seconds, send a POST request to the cleanup endpoint to delete the temp_dir
+                    setTimeout(function() {
+                        fetch('/file_manipulation/cleanup/', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ temp_dir: temp_dir })
+                                    })
                         .catch(function(error) {
                             console.error('Error:', error);
                         });
@@ -396,41 +416,40 @@ document.getElementById('Split_pdf').addEventListener('click', function() {
 
                     return blob;
                 });
+
             })
             .catch(function(error) {
                 console.error('Error:', error);
                 alert('An error occurred: ' + error.message);
+                document.getElementById('Split_pdf').style.display = 'block';
+                // Hide the loading animation
+                document.getElementById('loading-animation').style.display = 'none';
+
             });
         });
 
 
 });
 
-
 // Get the download button
 var downloadButton = document.getElementById('download-button');
 
+// Log a message to the console
+console.log('Download button:', downloadButton);
+
 // Add a click event listener to the download button
 downloadButton.addEventListener('click', function() {
+    console.log('Download button clicked');
+
     // Get the URL of the file to download
     var fileUrl = downloadButton.href;
+    console.log('File URL:', fileUrl);
 
-    // Create a new anchor element
     var a = document.createElement('a');
-
-    // Set the href attribute of the anchor element to the file URL
     a.href = fileUrl;
-
-     a.download = 'splited.zip';
-
-
-    // Append the anchor element to the body
+    a.download = 'splited.zip';
     document.body.appendChild(a);
-
-    // Simulate a click on the anchor element
     a.click();
-
-    // Remove the anchor element from the body
     document.body.removeChild(a);
 });
 
