@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Compressor</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+        h1 {
+            color: #444;
+            font-size: 2.5em;
+            margin-top: 1px;
+        }
+        form {
+            margin-bottom: 2em;
+        }
+        #parent-container {
+    display: flex;
+    justify-content: space-between;
+            height: 50vh;
+            border: 2px solid #ddd;
+            width: 63vw;
+}
+        #pdf-container, #pdf-controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: row;
+            flex-wrap: wrap;
+
+            border: 2px solid #ddd;
+            padding: 1em;
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            max-width: 50%;
+            max-height: 92%;
+            overflow: auto;
+            width: 60vw;
+            height: 90vh;
+        }
+        #pdf-controls {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+        .download-button {
+    display: inline-block;
+    background-color: #007BFF;
+    color: #fff;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1em;
+    text-decoration: none;
+    margin-top: 1em;
+            margin-bottom: 1em;
+}
+
+.download-button:hover {
+    background-color: #0056b3;
+}
+
+    #drag-drop-area {
+    border: 2px dashed #000;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+        height: 100px;
+        width: 60%;
+    overflow: hidden;
+}
+        .dragover {
+    cursor: copy;
+}
+       /* embed {
+    pointer-events: none;
+} */
+        .pdf-name {
+    position: relative;
+    white-space: nowrap;
+    overflow: hidden;
+    max-width: 100mm;
+    user-select: none;
+    -webkit-user-drag: none;
+    text-align: center;  /* Align the text to the center */
+}
+
+#pdf-controls {
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+
+label {
+    order: -2;
+    margin-bottom: 10px;
+}
+
+.slider {
+    width: 50%;
+    height: 15px;
+    background: #d3d3d3;
+    outline: none;
+    opacity: 0.7;
+    transition: opacity .2s;
+
+}
+#slider-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 60%;
+}
+
+.slider:hover {
+    opacity: 1;
+}
+
+.slider::-webkit-slider-thumb {
+    width: 25px;
+    height: 25px;
+    background: #4CAF50;
+    cursor: pointer;
+    appearance: none;
+}
+
+.slider::-moz-range-thumb {
+    width: 25px;
+    height: 25px;
+    background: #4CAF50;
+    cursor: pointer;
+}
+#slider-thumb-label {
+    display: none;
+    background-color: #fff;
+    border: 1px solid #000;
+    padding: 2px 5px;
+    font-size: 0.8em;
+    border-radius: 3px;
+}
+    </style>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.10.2/Sortable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.6.347/pdf.min.js" integrity="sha512-Z8CqofpIcnJN80feS2uccz+pXWgZzeKxDsDNMD/dJ6997/LSRY+W4NmEt9acwR+Gt9OHN0kkI1CTianCwoqcjQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+</head>
+<body>
+    <h1>PDF Compressor</h1>
+    <div id="drag-drop-area">
+        <p>Drag and drop your PDF file here, or click to select file</p>
+        <form id="pdf-upload-form" enctype="multipart/form-data">
+        <input type="file" id="pdf_file" name="pdf_file[]" accept=".pdf"  required>
+    </form>
+    </div>
+        <div id="buttons-container">
+    <button id="clear" type="button" class="download-button">Clear</button>
+</div>
+    <div id="parent-container">
+        <div id="pdf-container"></div>
+        <div id="pdf-controls">
+            <div id="slider-container">
+                <p>1%</p>
+            <input type="range" min="1" max="100" value="50" class="slider" id="compression-slider" list="steplist">
+            <datalist id="steplist">
+                <option>1</option>
+                <option>25</option>
+                <option>50</option>
+                <option>75</option>
+             <option>100</option>
+            </datalist>
+            <p>100%</p>
+            </div>
+            <input type="text" id="compression-value" value="50%" readonly>
+            <button id="compress-button" class="download-button">Compress</button>
+        </div>
+    </div>
+    <button id="download-button" class="download-button" disabled >Download</button>
+    <div id="loading-animation" style="display: none;">Loading...</div>
+<script>
+    var allFiles = [];
+    var clearButton = document.getElementById('clear');
+    var fileInput = document.getElementById('pdf_file');
+    var dragDropArea = document.querySelector('#drag-drop-area');
+    var pdfContainer = document.querySelector('#pdf-container');
+    var loadingAnimation = document.getElementById('loading-animation');
+
+    var compressionSlider = document.getElementById('compression-slider');
+    var compressionValue = document.getElementById('compression-value');
+    var sliderThumbLabel = document.getElementById('slider-thumb-label');
+
+    var compressButton = document.getElementById('compress-button');
+    compressButton.disabled = true;
+
+    compressButton.addEventListener('click', function() {
+    // Get the div elements in the pdf-container
+    var divs = pdfContainer.getElementsByTagName('div');
+
+    // If there are no divs, show an alert and return
+    if (divs.length === 0) {
+        alert('Please choose a file first.');
+        return;
+    }
+
+    // Get the compression value
+    var compressionValue = compressionSlider.value;
+
+    var formData = new FormData();
+    formData.append('compression_value', compressionValue);
+    for (var i = 0; i < allFiles.length; i++) {
+        formData.append('pdf_file', allFiles[i]);
+    }
+
+    // Send the FormData object to the backend
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', '/file_manipulation/pdf_compress/', true);  // Replace '/compress' with your actual endpoint
+    xhr.responseType = 'blob';  // Set the response type to 'blob'
+    xhr.onload = function() {
+    if (xhr.status === 200) {
+        // The request was successful
+        // Create a Blob from the response
+        var blob = new Blob([xhr.response], {type: 'application/zip'});
+        // Create a Blob URL and store it in the downloadUrl variable
+        downloadUrl = URL.createObjectURL(blob);
+        // Enable the download button
+        downloadButton.disabled = false;
+
+        // Get the compressed sizes from the 'X-Compressed-Sizes' header
+        var compressedSizesJson = xhr.getResponseHeader('X-Compressed-Sizes');
+        var compressedSizes = JSON.parse(compressedSizesJson);
+
+        // Display the new compressed sizes in the pdf-container
+       var pdfContainer = document.querySelector('#pdf-container');
+            var divs = pdfContainer.getElementsByTagName('div');
+            for (var i = 0; i < divs.length; i++) {
+                var div = divs[i];
+                var fileName = div.getElementsByTagName('p')[0].textContent;  // The first p element displays the file name
+                var newSize = compressedSizes[fileName];
+
+                // Check if a new size has already been added
+                var pNewSize = div.getElementsByTagName('p')[2];  // The third p element displays the new size
+                if (pNewSize) {
+                    // If a new size has already been added, remove it
+                    div.removeChild(pNewSize);
+                }
+
+                // Create a new p element for the new size
+                pNewSize = document.createElement('p');
+                pNewSize.style.minHeight = '20px';
+                pNewSize.textContent = 'New size: ' + (newSize / 1024).toFixed(2) + ' KB';
+
+                // Append the new p element to the div
+                div.appendChild(pNewSize);
+            }
+    } else {
+        // There was an error
+        console.error('An error occurred:', xhr.responseText);
+    }
+    };
+    xhr.send(formData);
+});
+
+
+    fileInput.addEventListener('change', function(e) {
+    var files = e.target.files;
+    for (var i = 0; i < files.length; i++) {
+        allFiles.push(files[i]);
+    }
+    if (files.length > 0) {
+        compressButton.disabled = false;
+    } else {
+        compressButton.disabled = true;
+    }
+    });
+
+    compressionSlider.addEventListener('input', function() {
+    compressionValue.value = compressionSlider.value + '%';
+    sliderThumbLabel.style.display = 'block';
+    sliderThumbLabel.style.left = compressionSlider.value + '%';
+    sliderThumbLabel.textContent = compressionSlider.value + '%';
+   var value = parseInt(compressionSlider.value, 10);
+
+    if (value <= 13) {
+        compressionSlider.value = 1;
+    } else if (value <= 38) {
+        compressionSlider.value = 25;
+    } else if (value <= 63) {
+        compressionSlider.value = 50;
+    } else if (value <= 88) {
+        compressionSlider.value = 75;
+    } else {
+        compressionSlider.value = 100;
+    }
+    });
+
+    compressionSlider.addEventListener('mouseup', function() {
+    sliderThumbLabel.style.display = 'none';
+    });
+
+    dragDropArea.addEventListener('dragover', function(e) {
+    e.preventDefault();
+    dragDropArea.classList.add('dragover');
+    });
+
+    dragDropArea.addEventListener('dragleave', function(e) {
+    dragDropArea.classList.remove('dragover');
+    });
+
+    dragDropArea.addEventListener('drop', function(e) {
+    e.preventDefault();
+    var files = e.dataTransfer.files;
+    for (var j = 0; j < files.length; j++) {
+        allFiles.push(files[j]);
+    }
+    if (files.length > 0) {
+        compressButton.disabled = false;
+        for (var i = 0; i < files.length; i++) {
+            processFile(files[i]);
+        }
+    }
+    else{
+        compressButton.disabled = true;
+    }
+
+    });
+
+
+fileInput.addEventListener('change', function(e) {
+        // Get the files from the event
+        var files = e.target.files;
+
+        // Process the first file
+        if (files.length > 0) {
+            processFile(files[0]);
+        }
+    });
+
+
+clearButton.addEventListener('click', function() {
+        console.log('Clear button clicked');
+        location.reload();
+    });
+
+fileInput.addEventListener('change', function(e) {
+        // Get the files from the event
+        var files = e.target.files;
+
+        // Process the first file
+        if (files.length > 0) {
+            processFile(files[0]);
+        }
+    });
+
+
+// Get the download button
+var downloadButton = document.getElementById('download-button');
+
+// Add a click event listener to the download button
+downloadButton.addEventListener('click', function() {
+    if (downloadUrl) {
+        // Create a new anchor element
+        var a = document.createElement('a');
+        // Set the href of the anchor element to the Blob URL
+        a.href = downloadUrl;
+        // Set the download attribute of the anchor element to the desired file name
+        a.download = 'compressed_files.zip';
+        // Append the anchor element to the body
+        document.body.appendChild(a);
+        // Trigger a click event on the anchor element
+        a.click();
+        // Remove the anchor element from the body
+        document.body.removeChild(a);
+    }
+});
+
+
+
+function processFile(file) {
+    var reader = new FileReader();
+
+    reader.onload = function(e) {
+        // Create a Blob from the file data
+        var blob = new Blob([e.target.result], {type: 'application/pdf'});
+
+        // Create a Blob URL
+        var url = URL.createObjectURL(blob);
+
+        // Create a div element to hold the PDF and its name
+       var div = document.createElement('div');
+        div.style.display = 'flex';
+        div.style.flexDirection = 'column';
+        div.style.justifyContent = 'flex-start';
+        div.style.alignItems = 'center';
+        div.style.border = '2px solid black';
+        div.style.padding = '10px';
+        div.style.margin = '5px';
+        div.style.width= '200px';
+        div.style.height= '370px';
+
+        // Create a p element to display the file name
+        var p = document.createElement('p');
+        p.textContent = file.name;
+        p.style.textAlign = 'center';
+        p.style.marginTop = '5px';
+        p.style.overflowWrap = 'break-word';
+        p.style.minHeight = '20px';
+
+
+        var sizeP = document.createElement('p');
+        var fileSizeInBytes = file.size;
+        var fileSizeInKB = fileSizeInBytes / 1024;
+        var fileSizeInMB = fileSizeInKB / 1024;
+
+        // If the file size is less than 1MB, display it in KB, otherwise display it in MB
+        if (fileSizeInMB < 1) {
+            sizeP.textContent = 'Size: ' + fileSizeInKB.toFixed(2) + ' KB';
+        } else {
+            sizeP.textContent = 'Size: ' + fileSizeInMB.toFixed(2) + ' MB';
+        }
+        sizeP.style.textAlign = 'center';
+        sizeP.style.marginTop = '-3px';
+        sizeP.style.minHeight = '20px';
+
+        // Create a canvas element to display the PDF
+        var canvas = document.createElement('canvas');
+
+        // Use PDF.js to load the PDF
+        pdfjsLib.getDocument(url).promise.then(function(pdf) {
+            // Get the first page
+            pdf.getPage(1).then(function(page) {
+                var viewport = page.getViewport({scale: 1});
+
+                // Set the canvas to a fixed width and calculate the height based on the A4 aspect ratio
+                canvas.width = 180;  // Set to desired width
+                canvas.height = canvas.width * 1.4142;  // Calculate height based on A4 aspect ratio
+                canvas.style.margin='-4px';
+                canvas.style.border='1px solid black';
+
+                // Render the page on the canvas
+                page.render({
+                    canvasContext: canvas.getContext('2d'),
+                    viewport: page.getViewport({scale: canvas.width / viewport.width})  // Scale the viewport to fit the canvas
+                });
+            });
+        });
+
+        // Add the p and canvas elements to the div
+        div.appendChild(p);
+        div.appendChild(sizeP);
+        div.appendChild(canvas);
+
+        // Add the div element to the pdf-container
+        var pdfContainer = document.querySelector('#pdf-container');
+        pdfContainer.appendChild(div);
+    };
+
+    reader.onerror = function(e) {
+        console.error('FileReader error:', e);
+    };
+
+    reader.readAsArrayBuffer(file);
+
+}
+</script>
+</body>
+</html>

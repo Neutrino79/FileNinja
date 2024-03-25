@@ -9,6 +9,7 @@ import shutil
 from PyPDF2 import PdfFileReader
 from zipfile import ZipFile
 from PyPDF2 import PdfFileWriter
+import subprocess
 
 
 
@@ -107,3 +108,67 @@ def pdf_split(request):
 
     else:
         return render(request, 'file_manipulation/pdf_split.html')
+
+
+@csrf_exempt
+def pdf_compress(request):
+    compressed_sizes = {}
+    if request.method == 'POST':
+        # Get the uploaded files and the compression value from the POST data
+        uploaded_files = request.FILES.getlist('pdf_file')
+        compression_value = request.POST['compression_value']
+
+
+        # Create a temporary directory to store the compressed PDF file
+        temp_dir = tempfile.mkdtemp(dir='/private/var/folders/h2/59vhr73s5t55sgq10fd9m8sc0000gn/T/File_Ninja_Temp')
+
+        # Map the compression value to a quality setting for Ghostscript
+        quality_settings = {
+            '100': 'default',
+            '75': 'printer',
+            '50': 'ebook',
+            '25': 'screen'
+        }
+        quality = quality_settings.get(compression_value, 'default')
+
+        for uploaded_file in uploaded_files:
+            input_filename = os.path.join(temp_dir, uploaded_file.name)
+            output_filename = os.path.join(temp_dir, 'compressed_' + uploaded_file.name)
+
+            # Save the uploaded file to the temporary directory
+            with open(input_filename, 'wb') as temp_file:
+                for chunk in uploaded_file.chunks():
+                    temp_file.write(chunk)
+
+            # Compress the PDF file using Ghostscript
+            subprocess.call([
+                'gs', '-sDEVICE=pdfwrite', '-dCompatibilityLevel=1.4',
+                '-dPDFSETTINGS=/' + quality, '-dNOPAUSE', '-dQUIET', '-dBATCH',
+                '-sOutputFile=' + output_filename,
+                input_filename
+            ])
+
+            compressed_size = os.path.getsize(output_filename)
+            compressed_sizes[uploaded_file.name] = compressed_size
+
+        # Create a zip file from the compressed PDF files
+        zip_filename = os.path.join(temp_dir, 'compressed_files.zip')
+        with ZipFile(zip_filename, 'w') as zip_file:
+            for root, dirs, files in os.walk(temp_dir):
+                for file in files:
+                    if file.startswith('compressed_'):
+                        zip_file.write(os.path.join(root, file), arcname=file)
+
+        # Send the zip file as a response to the browser
+        compressed_sizes_json = json.dumps(compressed_sizes)
+        print("compressed_sizes_json: ", compressed_sizes_json)
+        with open(zip_filename, 'rb') as zip_file:
+            response = HttpResponse(zip_file, content_type='application/zip')
+            response['X-Compressed-Sizes'] = compressed_sizes_json
+            response['Content-Disposition'] = 'attachment; filename="compressed_files.zip"'
+            response['temp_dir'] = temp_dir
+            print("temp_dir: ", temp_dir)
+            return response
+
+    else:
+        return render(request, 'file_manipulation/pdf_compress.html')
