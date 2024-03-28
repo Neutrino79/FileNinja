@@ -1,6 +1,5 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
+{% extends 'base.html' %}
+{% block head_extra %}
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PDF Splitter</title>
@@ -10,31 +9,46 @@
             font-family: 'Roboto', sans-serif;
             background-color: #f4f4f4;
             color: #333;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
         }
         h1 {
             color: #444;
             font-size: 2.5em;
-            margin-top: 1px;
+            display: flex;
+            justify-content: center;
+            margin-top: 0.5em;
         }
         form {
             margin-bottom: 2em;
+            display: flex;
+            justify-content: center;
         }
         #parent-container {
     display: flex;
     justify-content: space-between;
-            height: 50vh;
+            height: 42vh;
             border: 2px solid #ddd;
             width: 63vw;
+            margin-left: 18%;
 }
-        #pdf-container, #pdf-controls {
+        #pdf-container{
             display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: row;
+            flex-wrap: wrap;
+
+            border: 2px solid #ddd;
+            padding: 5em;
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            max-width: 50%;
+            max-height: 100%;
+            width: 60vw;
+            height: 90vh;
+        }
+        #pdf-controls{
+             display: flex;
             justify-content: center;
             align-items: center;
             flex-direction: row;
@@ -46,14 +60,12 @@
             border-radius: 5px;
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
             max-width: 50%;
-            max-height: 92%;
-            overflow: auto;
+            max-height: 100%;
             width: 60vw;
             height: 90vh;
         }
-
         .download-button {
-    display: inline-block;
+display: inline-block;
     background-color: #007BFF;
     color: #fff;
     padding: 10px 20px;
@@ -71,15 +83,17 @@
 }
 
     #drag-drop-area {
-    border: 2px dashed #000;
-    padding: 20px;
-    display: flex;
+  border: 2px dashed #000;
+  padding-top: 20px;
+        display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
         height: 100px;
         width: 60%;
     overflow: hidden;
+  margin-left: 20%;
+        margin-top: 2em;
 }
    #Split_pdf {
             background-color: #007BFF;
@@ -126,17 +140,27 @@
     order: -1;
     margin-bottom: 10px;
 }
+#buttons-container, #lower-bttons {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 1em;
+    margin-top: 1em;
+}
 
 label {
     order: -2;
     margin-bottom: 10px;
 }
+iframe{
+    border: 2px solid #ddd;
+}
 
     </style>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.10.2/Sortable.min.js"></script>
-</head>
-<body>
+{% endblock %}
+
+{% block content %}
     <h1>PDF Splitter</h1>
     <div id="drag-drop-area">
         <p>Drag and drop your PDF file here, or click to select file</p>
@@ -158,9 +182,11 @@ label {
     </select>
 </div>
     </div>
+    <div id="lower-bttons">
     <button id="Split_pdf">Split PDF</button>
     <button id="download-button" class="download-button" disabled style="display: none;">Download</button>
     <div id="loading-animation" style="display: none;">Loading...</div>
+    </div>
 <script>
     var clearButton = document.getElementById('clear');
     var fileInput = document.getElementById('pdf_file');
@@ -498,5 +524,5 @@ function processFile(file) {
     reader.readAsArrayBuffer(file);
 }
 </script>
-</body>
-</html>
+{% endblock %}
+```

@@ -1,7 +1,7 @@
+{% extends 'base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
+
+{% block head_extra %}
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Image to PDF Converter</title>
@@ -54,8 +54,9 @@
         overflow-y: auto; /* make it scrollable vertically when images overflow */
         }
     </style>
-</head>
-<body>
+{% endblock %}
+
+{% block content %}
      <div class="container">
     <h1>Image to PDF Converter</h1>
     <form id="upload-form">
@@ -227,5 +228,5 @@
     }
 });
     </script>
-</body>
-</html>
+{% endblock %}
+```

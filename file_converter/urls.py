@@ -10,4 +10,5 @@ urlpatterns = [
     path('pdf_to_image/', views.pdf_to_image, name='pdf_to_image'),
     path('img_to_pdf/', views.img_to_pdf, name='img_to_pdf'),
     path('cleanup_temp_dir/', views.cleanup_temp_dir, name='cleanup_temp_dir'),
+
 ]

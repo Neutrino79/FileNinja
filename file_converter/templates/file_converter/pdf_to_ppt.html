@@ -1,6 +1,6 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
+{% extends  'base.html' %}
+
+{% block head_extra %}
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PDF to DOCX Converter</title>
@@ -25,9 +25,9 @@
             cursor: pointer;
         }
     </style>
-</head>
-<body>
+{% endblock %}
 
+{% block content %}
 <div class="upload-form">
     <h2>PDF to PPT Converter</h2>
     <form id="PPTX-upload-form" enctype="multipart/form-data">
@@ -92,6 +92,5 @@ function cleanupTempDir(tempDir) {
     xhr.send();
 }
 </script>
-
-</body>
-</html>
+{% endblock %}
+```
