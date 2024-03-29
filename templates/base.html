@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 {% load static %}
+
 <html>
+
 <head>
    <meta charset="utf-8">
   <meta content="width=device-width, initial-scale=1.0" name="viewport">
@@ -27,6 +29,26 @@
 
   <!-- Template Main CSS File -->
   <link href="{% static 'assets/css/main.css' %}" rel="stylesheet">
+    <link rel="stylesheet" href="{% static '/css/login.css' %}">
+<style>
+    .login-register-btn:hover{
+  border-color: rgba(255, 255, 255, 0.5);
+}
+.login-register-btn{
+  font-family: var(--font-primary);
+font-weight: 500;
+font-size: 15px;
+letter-spacing: 1px;
+display: inline-block;
+padding: 14px 40px;
+border-radius: 50px;
+transition: 0.3s;
+color: #fff;
+background: rgba(255, 255, 255, 0.1);
+box-shadow: 0 0 15px rgba(0, 0, 0, 0.08);
+border: 2px solid rgba(255, 255, 255, 0.1);
+}
+</style>
 
   <!-- =======================================================
   * Template Name: Impact
@@ -39,8 +61,8 @@
     {% endblock %}
 </head>
 
-
 <body>
+    {% include  'login.html' %}
     <section id="topbar" class="topbar d-flex align-items-center">
     <div class="container d-flex justify-content-center justify-content-md-between">
       <div class="contact-info d-flex align-items-center">
@@ -57,7 +79,6 @@
   </section><!-- End Top Bar -->
 
   <header id="header" class="header d-flex align-items-center">
-
     <div class="container-fluid container-xl d-flex align-items-center justify-content-between">
       <a href="{% url 'home' %}" class="logo d-flex align-items-center">
         <!-- Uncomment the line below if you also wish to use an image logo -->
@@ -86,7 +107,7 @@
                 <li><a href="#">YT Video Summarize</a></li>
             </ul>
           </li>
-          <li><a href="#contact">Contact</a></li>
+          <li><button class="login-register-btn">Login or Register</button></li>
         </ul>
       </nav><!-- .navbar -->
 
@@ -97,14 +118,14 @@
   </header><!-- End Header -->
   <!-- End Header -->
 
-    
-    
+
+
     {% block content %}
-        
+
     {% endblock %}
 
-    
-    
+
+
     <footer id="footer" class="footer">
 
     <div class="container">
@@ -190,5 +211,22 @@
 
   <!-- Template Main JS File -->
   <script src="{% static 'assets/js/main.js' %}"></script>
+<script>
+document.querySelector('.login-register-btn').addEventListener('click', function(event) {
+  event.preventDefault();
+  var loginModal = new bootstrap.Modal(document.getElementById('loginModal'));
+  loginModal.show();
+});
+
+document.getElementById('loginModal').addEventListener('click', function(event) {
+    var loginContent = document.getElementById('loginContent');
+    if (!loginContent.contains(event.target)) {
+        // The click event originated outside of the loginContent div, close the modal
+        var loginModal = new bootstrap.Modal(document.getElementById('loginModal'));
+        loginModal.hide();
+    }
+    // If the click event originated from within the loginContent div, do nothing and let the event propagate
+});
+</script>
 </body>
 </html>

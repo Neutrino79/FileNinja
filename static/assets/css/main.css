@@ -32,6 +32,9 @@
 /*--------------------------------------------------------------
 # General
 --------------------------------------------------------------*/
+
+
+
 body {
   font-family: var(--font-default);
   color: var(--color-default);
@@ -476,6 +479,8 @@ section {
     display: none;
   }
 }
+
+
 
 /*--------------------------------------------------------------
 # Mobile Navigation
@@ -1940,6 +1945,8 @@ section {
     font-size: 14px;
   }
 }
+
+
 
 .hero .icon-boxes {
   padding-bottom: 60px;

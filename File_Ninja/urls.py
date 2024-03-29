@@ -27,5 +27,5 @@ urlpatterns = [
     path('', views.home, name='home'),
     path('file-converter/', include('file_converter.urls')),
     path('file_manipulation/', include('file_manipulation.urls')),
-
+    path('login/', views.login, name='login'),
 ]
