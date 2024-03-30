@@ -80,11 +80,12 @@ border: 2px solid rgba(255, 255, 255, 0.1);
 
   <header id="header" class="header d-flex align-items-center">
     <div class="container-fluid container-xl d-flex align-items-center justify-content-between">
-      <a href="{% url 'home' %}" class="logo d-flex align-items-center">
-        <!-- Uncomment the line below if you also wish to use an image logo -->
-         <img src="{% static 'images/github-mark.svg' %}" alt="">
-        <h1>File-Ninja<span>.</span></h1>
-      </a>
+        <button style="border: none; background: none">
+        <a style="margin-top: 45px; margin-left: 12rem" href="{% url 'home' %}" class="logo d-flex align-items-center">
+        <img src="{% static 'images/github-mark.svg' %}" alt="">
+        <h1>Impact<span>.</span></h1>
+        </a>
+        </button>
       <nav id="navbar" class="navbar">
         <ul>
           <li><a href="{% url 'home' %}">Home</a></li>
@@ -107,8 +108,8 @@ border: 2px solid rgba(255, 255, 255, 0.1);
                 <li><a href="#">YT Video Summarize</a></li>
             </ul>
           </li>
-          <li><button class="login-register-btn">Login or Register</button></li>
         </ul>
+          <button class="login-register-btn">Login or Register</button>
       </nav><!-- .navbar -->
 
       <i class="mobile-nav-toggle mobile-nav-show bi bi-list"></i>
@@ -131,8 +132,8 @@ border: 2px solid rgba(255, 255, 255, 0.1);
     <div class="container">
       <div class="row gy-4">
         <div class="col-lg-5 col-md-12 footer-info">
-          <a href="index.html" class="logo d-flex align-items-center">
-            <span>Impact</span>
+          <a href="index.html" class="logos d-flex align-items-center">
+            <span>awdad</span>
           </a>
           <p>Cras fermentum odio eu feugiat lide par naso tierra. Justo eget nada terra videa magna derita valies darta donna mare fermentum iaculis eu non diam phasellus.</p>
           <div class="social-links d-flex mt-4">
@@ -182,14 +183,14 @@ border: 2px solid rgba(255, 255, 255, 0.1);
 
     <div class="container mt-4">
       <div class="copyright">
-        &copy; Copyright <strong><span>Impact</span></strong>. All Rights Reserved
+        &copy; Copyright <strong><span>File-Ninja</span></strong>. All Rights Reserved
       </div>
       <div class="credits">
         <!-- All the links in the footer should remain intact. -->
         <!-- You can delete the links only if you purchased the pro version. -->
         <!-- Licensing information: https://bootstrapmade.com/license/ -->
         <!-- Purchase the pro version with working PHP/AJAX contact form: https://bootstrapmade.com/impact-bootstrap-business-website-template/ -->
-        Designed by <a href="https://bootstrapmade.com/">BootstrapMade</a>
+        Designed by <a href="">AtharvHiremath</a>
       </div>
     </div>
 
@@ -197,6 +198,7 @@ border: 2px solid rgba(255, 255, 255, 0.1);
   <!-- End Footer -->
 
   <a href="#" class="scroll-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
+
 
   <div id="preloader"></div>
 
