@@ -1,11 +1,11 @@
-<div id="loginModal" class="modal fade" tabindex="-1" role="dialog">
+<div id="registerModal" class="modal fade" tabindex="-1" role="dialog">
   <div  class="modal-dialog modal-dialog-centered" role="document">
-      <div id="loginContent" class="modal-content">
+      <div id="registerContent" class="modal-content" style="background:none;border: none">
       <!-- Your login form goes here -->
         {% load static %}
-    <form class="my-form">
+    <form class="my-form" style="overflow: auto;" >
         <div class="form-welcome-row">
-            <h1>Welcome back! &#128079;</h1> <h2>Login with your account!</h2>
+            <h1>Welcome &#128079;</h1> <h2> Create your account with File ninja!</h2>
         </div>
         <div class="socials-row">
             <a href="#" title="Use Github">
@@ -13,6 +13,19 @@
         </div>
         <div class="divider">
         <div class="divider-line"></div>or<div class="divider-line"></div>
+        </div>
+        <div class="text-field">
+            <label for="name">Name</label>
+            <input type="text" id="name" name="name" placeholder="Atharv Hiremath" required>
+        </div>
+        <div class="text-field">
+            <label for=DOB>DOB</label>
+            <input type="date" id="DOB" name="DOB" placeholder="" required>
+        </div>
+        <div class="text-field">
+            <label for=number>Number</label>
+           <input type="text" id="number" name="number" placeholder="Enter 10 digit number" pattern="^[0-9]{10}$" required>
+            <div class="error-message">only 10 digits allowed</div>
         </div>
         <div class="text-field">
             <label for="email">Email</label>
@@ -24,11 +37,16 @@
             <input id="password" type="password" name="password" placeholder="Your password" title="Minimum 6 characters at least 1 Alphabet and 1 Number" pattern="^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$" required>
         <div class="error-message">Minimum 6 characters at least 1 Alphabet and 1 Number</div>
         </div>
+        <div class="text-field">
+            <label for="repassword">Password</label>
+            <input id="repassword" type="password" name="repassword" placeholder="re-enter password" title="" required>
+        <div class="error-message">passwword and repassword does not match</div>
+        </div>
         <button class="my-form_button" type="submit">Sign In</button>
         <div class="my-form_actions">
         <div class="my-form_row">
-            <span>Don't have an account?</span>
-            <a href="#" id="signUpLink" title="Reset Password">Sign Up Now> </a>
+            <span>Already have an account?</span>
+            <a href="#" id="loginLink" title="Reset Password">Login Now> </a>
         </div>
         </div>
     </form>
