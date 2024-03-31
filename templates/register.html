@@ -3,7 +3,7 @@
       <div id="registerContent" class="modal-content" style="background:none;border: none">
       <!-- Your login form goes here -->
         {% load static %}
-    <form class="my-form" style="overflow: auto;" >
+    <form id="registerForm" class="my-form" style="overflow: auto;" >
         <div class="form-welcome-row">
             <h1>Welcome &#128079;</h1> <h2> Create your account with File ninja!</h2>
         </div>
@@ -34,11 +34,11 @@
         </div>
         <div class="text-field">
             <label for="password">Password</label>
-            <input id="password" type="password" name="password" placeholder="Your password" title="Minimum 6 characters at least 1 Alphabet and 1 Number" pattern="^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$" required>
+            <input id="pass" type="password" name="password" placeholder="Your password" title="Minimum 6 characters at least 1 Alphabet and 1 Number" pattern="^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$" required>
         <div class="error-message">Minimum 6 characters at least 1 Alphabet and 1 Number</div>
         </div>
         <div class="text-field">
-            <label for="repassword">Password</label>
+            <label for="repassword">Re-enter password</label>
             <input id="repassword" type="password" name="repassword" placeholder="re-enter password" title="" required>
         <div class="error-message">passwword and repassword does not match</div>
         </div>

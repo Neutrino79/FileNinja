@@ -14,13 +14,14 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from django.contrib import admin
 from django.urls import path, include
 
 from django.contrib import admin
 from django.urls import path
 
 from File_Ninja import views
+from File_Ninja.views import google_login_redirect
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -28,4 +29,10 @@ urlpatterns = [
     path('file-converter/', include('file_converter.urls')),
     path('file_manipulation/', include('file_manipulation.urls')),
     path('login/', views.login, name='login'),
+    path('social-auth/', include('social_django.urls', namespace='social')),
+    path('google-login-redirect/', google_login_redirect, name='google_login_redirect'),
+    path('register/', views.register, name='register'),
+
 ]
+
+
