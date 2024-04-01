@@ -28,7 +28,7 @@ urlpatterns = [
     path('', views.home, name='home'),
     path('file-converter/', include('file_converter.urls')),
     path('file_manipulation/', include('file_manipulation.urls')),
-    path('login/', views.login, name='login'),
+    path('login/', views.login_view, name='login'),
     path('social-auth/', include('social_django.urls', namespace='social')),
     path('google-login-redirect/', google_login_redirect, name='google_login_redirect'),
     path('register/', views.register, name='register'),
