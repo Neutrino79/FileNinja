@@ -11,5 +11,6 @@ class UserProfile(models.Model):
     locale = models.CharField(max_length=10, null=True)
     dob = models.DateField(null=True)  # Date of Birth field
     number = models.CharField(max_length=10, null=True)
+    is_premium = models.CharField(max_length=3, default='NO')
 
 

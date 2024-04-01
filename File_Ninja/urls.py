@@ -32,6 +32,7 @@ urlpatterns = [
     path('social-auth/', include('social_django.urls', namespace='social')),
     path('google-login-redirect/', google_login_redirect, name='google_login_redirect'),
     path('register/', views.register, name='register'),
+    path('logout/', views.logout_view, name='logout'),
 
 ]
 

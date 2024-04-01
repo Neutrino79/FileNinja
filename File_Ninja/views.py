@@ -6,6 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.db import models
 from django.contrib.auth.models import User
 from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth import logout
 
 from File_Ninja.models import UserProfile
 
@@ -16,6 +17,11 @@ def home(request):
 
 def login(request):
     return render(request, 'login.html')
+
+
+def logout_view(request):
+    logout(request)
+    return redirect('home')
 
 
 @login_required
@@ -45,6 +51,7 @@ def register(request):
         number = request.POST.get('number')
 
         if User.objects.filter(email=email).exists():
+            print("email already exists")
             return JsonResponse({'message': 'Email already exists'}, status=400)
 
         user = User.objects.create_user(username=email, email=email, password=password)

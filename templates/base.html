@@ -31,9 +31,25 @@
   <link href="{% static 'assets/css/main.css' %}" rel="stylesheet">
     <link rel="stylesheet" href="{% static '/css/login.css' %}">
 <style>
+    .navbar .logo {
+  margin-left: auto;
+}
+
     .login-register-btn:hover{
   border-color: rgba(255, 255, 255, 0.5);
 }
+    .user-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #f5f5f5;
+    color: #333;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
 .login-register-btn{
   font-family: var(--font-primary);
 font-weight: 500;
@@ -87,13 +103,13 @@ border: 2px solid rgba(255, 255, 255, 0.1);
     </div>
   </section><!-- End Top Bar -->
 
-  <header id="header" class="header d-flex align-items-center">
-    <div class="container-fluid container-xl d-flex align-items-center justify-content-between">
-      <nav id="navbar" class="navbar">
-        <a style="margin-bottom: 20px; padding-right: 370px" href="{% url 'home' %}" class="logo d-flex align-items-center">
+  <header id="header" class="header d-flex align-items-center" >
+    <div class="container-fluid container-xl d-flex align-items-center justify-content-between" style="margin-top: 30px;margin-bottom: 30px">
+    <a style="margin-bottom: 20px; padding-right: 1px; position: relative" href="{% url 'home' %}" class="logo d-flex align-items-center">
         <img src="{% static 'images/github-mark.svg' %}" alt="">
-        <h1>Impact<span>.</span></h1>
+        <h1>File-Ninja<span>.</span></h1>
         </a>
+      <nav id="navbar" class="navbar">
         <ul>
           <li><a href="{% url 'home' %}">Home</a></li>
           <li><a href="{% url 'home' %}#about">About</a></li>
@@ -115,8 +131,21 @@ border: 2px solid rgba(255, 255, 255, 0.1);
                 <li><a href="#">YT Video Summarize</a></li>
             </ul>
           </li>
+            <li class="dropdown"><a> <span>{% if user.is_authenticated %}
+                                        <button class="user-circle">{{ user.email|slice:":2" }}</button>
+                                        <ul>
+                                            <li><a>{{ user.email }}</a></li>
+                                            <li><a>Premium:{{ user.userprofile.is_premium }}</a></li>
+                                            <li><a href="{% url 'logout' %}">Logout</a></li>
+                                        </ul>
+                                        {% else %}
+                                        <button class="login-register-btn">Login or Register</button>
+                                        {% endif %}
+                                </span></a>
+
+            </li>
         </ul>
-          <button class="login-register-btn">Login or Register</button>
+
       </nav><!-- .navbar -->
 
       <i class="mobile-nav-toggle mobile-nav-show bi bi-list"></i>
@@ -222,6 +251,22 @@ border: 2px solid rgba(255, 255, 255, 0.1);
   <script src="{% static 'assets/js/main.js' %}"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 <script>
+
+console.log('JavaScript code is being executed');
+
+document.addEventListener('DOMContentLoaded', function() {
+  var userInfo = document.getElementById('user-info');
+  if (userInfo) {
+    var userCircle = document.getElementById('user-circle');
+    var userDropdown = document.getElementById('user-dropdown');
+    userCircle.addEventListener('click', function() {
+      console.log('User circle clicked');
+      var isHidden = userDropdown.style.display === 'none';
+      userDropdown.style.display = isHidden ? 'block' : 'none';
+    });
+  }
+});
+
 document.querySelector('.login-register-btn').addEventListener('click', function(event) {
   event.preventDefault();
   var loginModal = new bootstrap.Modal(document.getElementById('loginModal'));
@@ -262,8 +307,8 @@ document.querySelector('#registerForm').addEventListener('submit', function(even
             event.preventDefault();
             alert('Password and repassword do not match');
 
-        } else {
-            alert(('Password and repassword match'));
+        }
+        else {
             event.preventDefault();
 
             var formData = new FormData(this);
@@ -272,31 +317,43 @@ document.querySelector('#registerForm').addEventListener('submit', function(even
             method: 'POST',
             body: formData
             })
-            .then(response => response.json())
-            .then(data => {
-            if (response.status === 200) {
-                alert(data.message);
-            } 
-            else if (response.status === 400){
-                alert("email already exits : "+data.message)
+            .then(response => {
+            if (!response.ok) {
+               return response.json().then(data => {
+                    throw new Error(data.message);
+                 });
             }
-            else {
-                alert('An error occurred: ' + data.message);
+            return response.json();
+            })
+            .then(data => {
+            if (data.message) {
+                alert(data.message);
+                    var registerModal = new bootstrap.Modal(document.getElementById('registerModal'));
+                    registerModal.hide();
+                    var loginModal = new bootstrap.Modal(document.getElementById('loginModal'));
+                    loginModal.show();
             }
             })
-            .catch(error => console.error('Error:', error));
-        }
+            .catch(error => {
+                // Handle the error here
+                alert('An error occurred: ' + error.message);
+            });
+            }
     }
     else{
         event.preventDefault();
         alert('Password cannot be empty');
-    
+
     }
 });
 
 document.querySelector('#loginForm').addEventListener('submit', function(event) {
     alert('Login form submitted');
 });
+
+
+
+
 </script>
 </body>
 </html>
