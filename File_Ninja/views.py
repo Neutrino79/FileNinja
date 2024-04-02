@@ -77,3 +77,7 @@ def register(request):
         return JsonResponse({'message': 'Registered successfully'}, status=200)
 
 
+def payment(request):
+    return render(request, 'payment.html')
+
+

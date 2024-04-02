@@ -33,6 +33,7 @@ urlpatterns = [
     path('google-login-redirect/', google_login_redirect, name='google_login_redirect'),
     path('register/', views.register, name='register'),
     path('logout/', views.logout_view, name='logout'),
+    path('payment/', views.payment, name='payment'),
 
 ]
 
