@@ -255,10 +255,70 @@ def pdf_to_image(request):
 
 
 
-
-
-
 @csrf_exempt
+def img_to_pdf(request):
+    if request.method == 'POST':
+        images = json.loads(request.POST.get('images'))
+        if images:
+            # Sort the images by their order
+            images.sort(key=lambda image: image['order'])
+
+            # Create a temporary directory to store the PDF file
+            temp_dir = tempfile.mkdtemp(dir='/private/var/folders/h2/59vhr73s5t55sgq10fd9m8sc0000gn/T/File_Ninja_Temp')
+
+            # Define the path for the PDF file
+            pdf_path = os.path.join(temp_dir, 'output.pdf')
+
+            # Create a list to store the image data
+            img_data_list = []
+
+            # Define the size of an A4 paper in pixels (at 300 DPI)
+            a4_size = (2480, 3508)
+
+            # Loop through the images
+            for image in images:
+                try:
+                    # Decode the base64 image
+                    img_data = base64.b64decode(image['src'].split(',')[1])
+                    img = Image.open(io.BytesIO(img_data))
+
+                    # Check if the rotation angle is 'none' before parsing it as a float and rotating the image
+                    angle = image['angle'].replace('rotate(', '').replace('deg)', '')
+                    if angle != 'none':
+                        angle = float(angle)
+                        img = img.rotate(-angle)
+
+                    # Resize and center the image as before...
+
+                    # Convert the image to bytes and add it to the list
+                    byte_arr = io.BytesIO()
+                    img.save(byte_arr, format='PNG')
+                    img_data_list.append(byte_arr.getvalue())
+                except Exception as e:
+                    print(f"Error processing image: {e}")
+
+            # Convert the images to PDF
+            with open(pdf_path, "wb") as f:
+                f.write(img2pdf.convert(img_data_list))
+
+                # Open the PDF file in binary mode
+                pdf_file = open(pdf_path, 'rb')
+
+                # Create a FileResponse from the PDF file
+                response = FileResponse(pdf_file, content_type='application/pdf')
+
+                # Set the Content-Disposition header to make the browser download the file
+                response['Content-Disposition'] = f'attachment; filename="{os.path.basename(pdf_path)}"'
+
+                # Return the response
+                return response
+        else:
+            return JsonResponse({'error': 'Images not provided.'}, status=400)
+    else:
+            return render(request, 'file_converter/img_to_pdf.html')
+
+
+''''@csrf_exempt
 def img_to_pdf(request):
     print("POST keys:", request.POST.keys())
     if request.method == 'POST':
@@ -327,3 +387,4 @@ def img_to_pdf(request):
             return JsonResponse({'error': 'Images not provided.'}, status=400)
     else:
         return render(request, 'file_converter/img_to_pdf.html')
+        '''
