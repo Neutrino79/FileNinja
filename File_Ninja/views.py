@@ -10,10 +10,23 @@ from django.contrib.auth import logout
 from File_Ninja.models import UserProfile
 import logging
 logger = logging.getLogger(__name__)
+from File_Ninja.models import Subscriptions
 
 
 def home(request):
-    return render(request, 'index.html')
+    value_pack = Subscriptions.objects.filter(offer_name='Value_pack').first()
+    premium_pack = Subscriptions.objects.filter(offer_name='Premium_pack').first()
+    if value_pack:
+        value_pack_cost = value_pack.cost
+    else:
+        value_pack_cost = None
+
+    if premium_pack:
+        premium_pack_cost = premium_pack.cost
+    else:
+        premium_pack_cost = None
+
+    return render(request, 'index.html', {'value_pack_cost': value_pack_cost, 'premium_pack_cost': premium_pack_cost})
 
 
 def login_view(request):

@@ -14,3 +14,9 @@ class UserProfile(models.Model):
     is_premium = models.CharField(max_length=3, default='NO')
 
 
+class Subscriptions(models.Model):
+    offer_name = models.CharField(max_length=100,default='No offer name available')
+    cost = models.FloatField(default=0)
+    validity = models.IntegerField(default=30)
+    description = models.TextField(default='No description available')
+

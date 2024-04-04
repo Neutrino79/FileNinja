@@ -77,7 +77,7 @@ border: 2px solid rgba(255, 255, 255, 0.1);
     {% endblock %}
 </head>
 
-<body data-user-authenticated="{% if user.is_authenticated %}true{% else %}false{% endif %}">
+<body data-user-authenticated="{% if user.is_authenticated %}true{% else %}false{% endif %}" data-user-email="{% if user.is_authenticated %}{{ user.email }}{% endif %}">
     {% include  'login.html' %}
     {% include  'register.html' %}
     {% include 'payment.html' %}
@@ -281,6 +281,10 @@ buyButtons.forEach(function(button) {
         } else if (button.parentElement.parentElement.querySelector('h3').innerText === 'Developer Plan') {
             packName = 'Developer Plan';
         }
+        
+        var userEmail = document.body.dataset.userEmail;
+        console.log("Emlail = ", userEmail);
+        document.getElementById('pay_email').value = userEmail;
         
         document.querySelector('.list-group-item .my-0').innerText = packName;
             // Get the price based on the clicked button
