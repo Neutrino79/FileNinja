@@ -1,20 +1,9 @@
 import shutil
-from wsgiref.util import FileWrapper
-
-import pdf2pptx
-import py
-from django.shortcuts import render
-
-# Create your views here.
-from django.shortcuts import render
-from django.http import JsonResponse
 from django.shortcuts import render
 from django.http import JsonResponse, HttpResponse
-from docx import Document
 from pdf2docx import Converter
 from pdf2pptx import convert_pdf2pptx
 from PIL import Image
-from fpdf import FPDF
 import base64
 import io
 import tempfile
@@ -23,7 +12,6 @@ from django.views.decorators.csrf import csrf_exempt
 from django.http import FileResponse
 import json
 import img2pdf
-import tabula
 import pdfplumber
 import pandas as pd
 
