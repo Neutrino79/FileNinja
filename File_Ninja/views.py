@@ -7,26 +7,21 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import logout
+from django.views.decorators.http import require_POST
+from django.http import JsonResponse
 from File_Ninja.models import UserProfile
 import logging
+import json
 logger = logging.getLogger(__name__)
 from File_Ninja.models import Subscriptions
 
 
 def home(request):
-    value_pack = Subscriptions.objects.filter(offer_name='Value_pack').first()
-    premium_pack = Subscriptions.objects.filter(offer_name='Premium_pack').first()
-    if value_pack:
-        value_pack_cost = value_pack.cost
-    else:
-        value_pack_cost = None
-
-    if premium_pack:
-        premium_pack_cost = premium_pack.cost
-    else:
-        premium_pack_cost = None
-
-    return render(request, 'index.html', {'value_pack_cost': value_pack_cost, 'premium_pack_cost': premium_pack_cost})
+    subscription1 = Subscriptions.objects.get(pk=1)
+    subscription2 = Subscriptions.objects.get(pk=2)
+    sub_id=UserProfile.objects.get(user=request.user).subscription_id
+    user_sub_cost=Subscriptions.objects.get(pk=sub_id).cost
+    return render(request, 'index.html', {'user_sub_cost':user_sub_cost,'subscription1':subscription1,'subscription2':subscription2})
 
 
 def login_view(request):
@@ -95,3 +90,20 @@ def payment(request):
     return render(request, 'payment.html')
 
 
+@csrf_exempt
+@require_POST
+def checkout(request):
+    print("In the checkpuut")
+    data = json.loads(request.body)
+    first_name = data.get('first_name')
+    last_name = data.get('last_name')
+    payment_mode = data.get('payment_mode')
+    credit_card_number = data.get('credit_card_number')
+    name_on_card = data.get('name_on_card')
+    country = data.get('country')
+    state = data.get('state')
+    zip = data.get('zip')
+    email = data.get('email')
+    print(first_name, last_name, payment_mode, credit_card_number, name_on_card, country, state, zip , email)
+
+    return JsonResponse({'message': 'Checkout successful'})

@@ -358,7 +358,7 @@
       </div>
     </section><!-- End Testimonials Section -->
 
-   
+
     <!-- ======= Our Team Section ======= -->
     <section id="team" class="team">
       <div class="container" data-aos="fade-up">
@@ -462,12 +462,13 @@
 
           <div class="col-lg-4">
             <div class="pricing-item featured">
-              <h3>Business Plan</h3>
+                <h2 style="text-align: center">{{ subscription1.subscription_id }}</h2>
+              <h3>{{ subscription1.offer_name }}</h3>
               <div class="icon">
                 <i class="bi bi-airplane"></i>
               </div>
 
-              <h4 id="business-plan-price"><sup>₹</sup>{{ value_pack_cost }}<span> / month</span></h4>
+              <h4 id="business-plan-price"><sup>₹</sup>{{ subscription1.cost }}<span> / month</span></h4>
               <ul>
                 <li><i class="bi bi-check"></i> Quam adipiscing vitae proin</li>
                 <li><i class="bi bi-check"></i> Nec feugiat nisl pretium</li>
@@ -481,11 +482,12 @@
 
           <div class="col-lg-4">
             <div class="pricing-item">
-              <h3>Developer Plan</h3>
+                <h2 style="text-align: center">{{ subscription2.subscription_id }}</h2>
+              <h3>{{ subscription2.offer_name }}</h3>
               <div class="icon">
                 <i class="bi bi-send"></i>
               </div>
-              <h4 id="developer-plan-price"><sup>₹</sup>{{ premium_pack_cost }}<span> / month</span></h4>
+              <h4 id="developer-plan-price"><sup>₹</sup>{{ subscription2.cost }}<span> / month</span></h4>
               <ul>
                 <li><i class="bi bi-check"></i> Quam adipiscing vitae proin</li>
                 <li><i class="bi bi-check"></i> Nec feugiat nisl pretium</li>
@@ -773,6 +775,60 @@
     </section><!-- End Contact Section -->
 
   </main><!-- End #main -->
+    <script>
+   document.addEventListener('DOMContentLoaded', function() {
+      var buyButtons = document.querySelectorAll('.buy-btn');
+
+buyButtons.forEach(function(button) {
+    button.addEventListener('click', function(event) {
+        // Prevent the default action
+        event.preventDefault();
+
+
+        // Check if the user is authenticated
+        var isAuthenticated = document.body.dataset.userAuthenticated === 'true';
+
+        if (!isAuthenticated) {
+            // If the user is not authenticated, show an alert
+            alert('Please log in first.');
+        }
+
+        else {
+        var userSubscriptionCost = parseFloat("{{ user_sub_cost }}");
+        console.log("User Subscription Cost = ", userSubscriptionCost);
+        var cost =button.parentElement.parentElement.querySelector('h4').innerText;
+        cost = parseFloat(cost.match(/[\d\.]+/)[0]);
+        console.log("Cost = ", cost);
+          if(userSubscriptionCost >= cost){
+              alert('You already have this subscription');
+          }
+          else
+          {
+          var packName=button.parentElement.parentElement.querySelector('h3').innerText;
+          var sub_id=button.parentElement.parentElement.querySelector('h2').innerText;
+          document.getElementById('sub_id').innerText = sub_id;
+
+          var userEmail = document.body.dataset.userEmail;
+          console.log("Emlail = ", userEmail);
+          document.getElementById('pay_email').value = userEmail;
+
+          document.querySelector('.list-group-item .my-0').innerText = packName;
+
+
+              // Replace the price in the HTML
+          document.getElementById('item-price').innerText =  cost;
+          document.getElementById('total-price').innerText =  cost;
+
+              // Show the payment modal
+              var paymentModal = new bootstrap.Modal(document.getElementById('paymentModal'));
+              paymentModal.show();
+          }
+        }
+    });
+});
+    });
+    </script>
+
 {% endblock %}
   <!-- ======= Footer ======= -->
   

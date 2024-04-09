@@ -257,58 +257,6 @@ console.log('JavaScript code is being executed');
 
 document.addEventListener('DOMContentLoaded', function() {
     
-    var buyButtons = document.querySelectorAll('.buy-btn');
-var paymentModal = document.getElementById('paymentModal');
-
-buyButtons.forEach(function(button) {
-    button.addEventListener('click', function(event) {
-        // Prevent the default action
-        event.preventDefault();
-
-        // Check if the user is authenticated
-        var isAuthenticated = document.body.dataset.userAuthenticated === 'true';
-
-        if (!isAuthenticated) {
-            // If the user is not authenticated, show an alert
-            alert('Please log in first.');
-        } else {
-            // If the user is authenticated, proceed as before
-            var packName;
-        if (button.parentElement.parentElement.querySelector('h3').innerText === 'Free Plan') {
-          packName = 'Free Plan';
-        } else if (button.parentElement.parentElement.querySelector('h3').innerText === 'Business Plan') {
-          packName = 'Business Plan';
-        } else if (button.parentElement.parentElement.querySelector('h3').innerText === 'Developer Plan') {
-            packName = 'Developer Plan';
-        }
-        
-        var userEmail = document.body.dataset.userEmail;
-        console.log("Emlail = ", userEmail);
-        document.getElementById('pay_email').value = userEmail;
-        
-        document.querySelector('.list-group-item .my-0').innerText = packName;
-            // Get the price based on the clicked button
-            var price;
-            if (button.parentElement.parentElement.querySelector('h3').innerText === 'Free Plan') {
-                price = document.getElementById('free-plan-price').innerText;
-            } else if (button.parentElement.parentElement.querySelector('h3').innerText === 'Business Plan') {
-                price = document.getElementById('business-plan-price').innerText;
-            } else if (button.parentElement.parentElement.querySelector('h3').innerText === 'Developer Plan') {
-                price = document.getElementById('developer-plan-price').innerText;
-            }
-
-            // Replace the price in the HTML
-            document.getElementById('item-price').innerText =  price;
-            document.getElementById('total-price').innerText =  price;
-
-            // Show the payment modal
-            var paymentModal = new bootstrap.Modal(document.getElementById('paymentModal'));
-            paymentModal.show();
-        }
-    });
-});
-    
-    
   var userInfo = document.getElementById('user-info');
   if (userInfo) {
     var userCircle = document.getElementById('user-circle');
@@ -319,6 +267,51 @@ buyButtons.forEach(function(button) {
       userDropdown.style.display = isHidden ? 'block' : 'none';
     });
   }
+    
+    document.getElementById('checkout').addEventListener('click', function(event) {
+    event.preventDefault();
+    console.log('Button clicked');
+    var paymentMethod = '';
+    var radioButtons = document.querySelectorAll('input[name="paymentMethod"]');
+    radioButtons.forEach(function(radioButton) {
+    if (radioButton.checked) {
+        var label = document.querySelector('label[for="' + radioButton.id + '"]');
+        paymentMethod = label.textContent;
+    }
+    });
+    var paymentData = {
+        'first_name': document.getElementById('firstName').value,
+        'last_name': document.getElementById('lastName').value,
+        'payment_mode':paymentMethod,
+        'credit_card_number': document.getElementById('cc-number').value,
+        'name_on_card': document.getElementById('cc-name').value,
+        'country': document.getElementById('country').value,
+        'state': document.getElementById('state').value,
+        'zip': document.getElementById('zip').value,
+        'email': document.getElementById('pay_email').value,
+
+    };
+    console.log("data sent")
+    fetch('/checkout/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            // Include other headers as needed
+        },
+        body: JSON.stringify(paymentData)
+
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Handle the response
+    })
+    .catch((error) => {
+        console.error('Error:', error);
+    });
+});
+  
+  
+  
 });
 
 document.querySelector('.login-register-btn').addEventListener('click', function(event) {

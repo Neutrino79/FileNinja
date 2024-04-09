@@ -41,7 +41,7 @@ class payments_transection(models.Model):
 
 class active_subscription_list(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    email = models.CharField(max_length=100)
+    email = models.CharField(max_length=100, primary_key=True)
     start_date = models.DateField()
     end_date = models.DateField()
     subscription = models.ForeignKey(Subscriptions, on_delete=models.SET_NULL, null=True)

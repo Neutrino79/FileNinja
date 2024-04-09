@@ -34,6 +34,7 @@ urlpatterns = [
     path('register/', views.register, name='register'),
     path('logout/', views.logout_view, name='logout'),
     path('payment/', views.payment, name='payment'),
+    path('checkout/', views.checkout, name='checkout'),
 
 ]
 

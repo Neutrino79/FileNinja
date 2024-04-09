@@ -16,11 +16,12 @@
             </h4>
            <ul class="list-group mb-3 sticky-top">
     <li class="list-group-item d-flex justify-content-between lh-condensed">
-        <div>
+
+        <div>sub-ID = <h6 id="sub_id" ></h6>
+            <span id="item-price" class="text-muted">price</span>
             <h6 class="my-0">Product name</h6>
-            <small class="text-muted">Brief description</small>
         </div>
-        <span id="item-price" class="text-muted">price</span>
+
     </li>
     <li class="list-group-item d-flex justify-content-between">
         <span>Total (USD)</span>
@@ -139,6 +140,7 @@
     </footer>
 </div>
 <script>
+
     // Example starter JavaScript for disabling form submissions if there are invalid fields
 (function () {
   'use strict'
@@ -159,7 +161,9 @@
     })
   }, false)
 }())
-    
+
+
+
     var paymentMethods = document.getElementsByName('paymentMethod');
 
     // Listen for changes on each radio button
