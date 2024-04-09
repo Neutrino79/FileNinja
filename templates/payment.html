@@ -142,27 +142,80 @@
 <script>
 
     // Example starter JavaScript for disabling form submissions if there are invalid fields
-(function () {
-  'use strict'
-
-  window.addEventListener('load', function () {
-    // Fetch all the forms we want to apply custom Bootstrap validation styles to
-    var forms = document.getElementsByClassName('needs-validation')
+document.addEventListener('DOMContentLoaded', function() {
+    var forms = document.getElementsByClassName('needs-validation');
 
     // Loop over them and prevent submission
     Array.prototype.filter.call(forms, function (form) {
-      form.addEventListener('submit', function (event) {
-        if (form.checkValidity() === false) {
-          event.preventDefault()
-          event.stopPropagation()
+        form.addEventListener('submit', function (event) {
+            if (form.checkValidity() === false) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            form.classList.add('was-validated');
+        }, false);
+    });
+
+
+    document.getElementById('checkout').addEventListener('click', function (event) {
+        event.preventDefault();
+        console.log('Button clicked');
+        var paymentMethod = '';
+        var radioButtons = document.querySelectorAll('input[name="paymentMethod"]');
+        radioButtons.forEach(function (radioButton) {
+            if (radioButton.checked) {
+                var label = document.querySelector('label[for="' + radioButton.id + '"]');
+                paymentMethod = label.textContent;
+            }
+        });
+        var paymentData = {
+            'first_name': document.getElementById('firstName').value,
+            'last_name': document.getElementById('lastName').value,
+            'payment_mode': paymentMethod,
+            'credit_card_number': document.getElementById('cc-number').value,
+            'name_on_card': document.getElementById('cc-name').value,
+            'country': document.getElementById('country').value,
+            'state': document.getElementById('state').value,
+            'zip': document.getElementById('zip').value,
+            'email': document.getElementById('pay_email').value,
+            'sub_id': document.getElementById('sub_id').innerText,
+        };
+        for (var key in paymentData) {
+            if (paymentData['payment_mode'] === 'UPI' && (key === 'credit_card_number' || key === 'name_on_card')) {
+                continue;
+            }
+            if (paymentData[key] === '') {
+                alert('Please fill all the fields');
+                return;
+            }
         }
-        form.classList.add('was-validated')
-      }, false)
-    })
-  }, false)
-}())
+        console.log("data sent")
+        fetch('/checkout/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                // Include other headers as needed
+            },
+            body: JSON.stringify(paymentData)
+        })
+            .then(response => response.json())
+            .then(data => {
+               if (data.success) {
+                    // The request was successful, display a success message
+                    alert('message: ' + data.message);
+                    window.location.href = '/';
+                    } else {
+                   // The request failed, display an error message
+                   alert('Error: ' + data.message);
+                   console.log("succeseed error")
+               }
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+    });
 
-
+});
 
     var paymentMethods = document.getElementsByName('paymentMethod');
 

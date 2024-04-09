@@ -256,7 +256,7 @@ border: 2px solid rgba(255, 255, 255, 0.1);
 console.log('JavaScript code is being executed');
 
 document.addEventListener('DOMContentLoaded', function() {
-    
+
   var userInfo = document.getElementById('user-info');
   if (userInfo) {
     var userCircle = document.getElementById('user-circle');
@@ -267,51 +267,11 @@ document.addEventListener('DOMContentLoaded', function() {
       userDropdown.style.display = isHidden ? 'block' : 'none';
     });
   }
-    
-    document.getElementById('checkout').addEventListener('click', function(event) {
-    event.preventDefault();
-    console.log('Button clicked');
-    var paymentMethod = '';
-    var radioButtons = document.querySelectorAll('input[name="paymentMethod"]');
-    radioButtons.forEach(function(radioButton) {
-    if (radioButton.checked) {
-        var label = document.querySelector('label[for="' + radioButton.id + '"]');
-        paymentMethod = label.textContent;
-    }
-    });
-    var paymentData = {
-        'first_name': document.getElementById('firstName').value,
-        'last_name': document.getElementById('lastName').value,
-        'payment_mode':paymentMethod,
-        'credit_card_number': document.getElementById('cc-number').value,
-        'name_on_card': document.getElementById('cc-name').value,
-        'country': document.getElementById('country').value,
-        'state': document.getElementById('state').value,
-        'zip': document.getElementById('zip').value,
-        'email': document.getElementById('pay_email').value,
 
-    };
-    console.log("data sent")
-    fetch('/checkout/', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            // Include other headers as needed
-        },
-        body: JSON.stringify(paymentData)
 
-    })
-    .then(response => response.json())
-    .then(data => {
-        // Handle the response
-    })
-    .catch((error) => {
-        console.error('Error:', error);
-    });
-});
-  
-  
-  
+
+
+
 });
 
 document.querySelector('.login-register-btn').addEventListener('click', function(event) {

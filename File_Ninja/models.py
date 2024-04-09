@@ -20,7 +20,7 @@ class UserProfile(models.Model):
     dob = models.DateField(null=True)  # Date of Birth field
     number = models.CharField(max_length=10, null=True)
     is_premium = models.CharField(max_length=3, default='NO')
-    subscription = models.ForeignKey(Subscriptions, on_delete=models.SET_NULL, null=True)
+    subscription = models.ForeignKey(Subscriptions, on_delete=models.SET_NULL, null=True )
 
 
 class payments_transection(models.Model):
@@ -32,11 +32,12 @@ class payments_transection(models.Model):
     last_name = models.CharField(max_length=100)
     payment_mode = models.CharField(max_length=100)
     payment_date = models.DateField()
-    Credit_Card_Number = models.CharField(max_length=16)
-    name_on_card = models.CharField(max_length=100)
+    Credit_Card_Number = models.CharField(max_length=16, null=True)
+    name_on_card = models.CharField(max_length=100, null=True)
     country = models.CharField(max_length=100)
     state = models.CharField(max_length=100)
     zip = models.CharField(max_length=10)
+
 
 
 class active_subscription_list(models.Model):

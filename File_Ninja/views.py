@@ -1,3 +1,5 @@
+from datetime import datetime, timedelta
+
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login
@@ -9,18 +11,23 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import logout
 from django.views.decorators.http import require_POST
 from django.http import JsonResponse
-from File_Ninja.models import UserProfile
+from File_Ninja.models import *
 import logging
 import json
 logger = logging.getLogger(__name__)
 from File_Ninja.models import Subscriptions
-
+from django.utils import timezone
+from django.db.models import ObjectDoesNotExist
 
 def home(request):
-    subscription1 = Subscriptions.objects.get(pk=1)
-    subscription2 = Subscriptions.objects.get(pk=2)
-    sub_id=UserProfile.objects.get(user=request.user).subscription_id
-    user_sub_cost=Subscriptions.objects.get(pk=sub_id).cost
+    subscription1 = Subscriptions.objects.get(pk=2)
+    subscription2 = Subscriptions.objects.get(pk=3)
+    if request.user.is_authenticated:
+        sub_id=UserProfile.objects.get(user=request.user).subscription_id
+        user_sub_cost=Subscriptions.objects.get(pk=sub_id).cost
+    else:
+        sub_id = None
+        user_sub_cost = None
     return render(request, 'index.html', {'user_sub_cost':user_sub_cost,'subscription1':subscription1,'subscription2':subscription2})
 
 
@@ -80,7 +87,7 @@ def register(request):
             return JsonResponse({'message': 'Email already exists'}, status=400)
 
         user = User.objects.create_user(username=email, email=email, password=password)
-        UserProfile.objects.create(user=user, email=email, password=password, full_name=full_name, dob=dob, number=number)
+        UserProfile.objects.create(user=user, email=email, password=password, full_name=full_name, dob=dob, number=number,subscription_id=1)
 
         return JsonResponse({'message': 'Registered successfully'}, status=200)
 
@@ -93,7 +100,7 @@ def payment(request):
 @csrf_exempt
 @require_POST
 def checkout(request):
-    print("In the checkpuut")
+    print("In the checkout")
     data = json.loads(request.body)
     first_name = data.get('first_name')
     last_name = data.get('last_name')
@@ -102,8 +109,64 @@ def checkout(request):
     name_on_card = data.get('name_on_card')
     country = data.get('country')
     state = data.get('state')
-    zip = data.get('zip')
+    zip_code = data.get('zip')
     email = data.get('email')
-    print(first_name, last_name, payment_mode, credit_card_number, name_on_card, country, state, zip , email)
+    sub_id = data.get('sub_id')
+    print(first_name, last_name, payment_mode, credit_card_number, name_on_card, country, state, zip_code , email , sub_id)
 
-    return JsonResponse({'message': 'Checkout successful'})
+    # Create a new transaction in the payments_transection table
+    payment = payments_transection.objects.create(
+        user=request.user,
+        first_name=first_name,
+        last_name=last_name,
+        payment_mode=payment_mode,
+        payment_date=timezone.now(),
+        Credit_Card_Number=credit_card_number,
+        name_on_card=name_on_card,
+        country=country,
+        state=state,
+        zip=zip_code,
+        email=email,
+        subscription_id=sub_id
+    )
+    payment.save()
+
+    # Create a new active subscription in the active_subscription_list table
+    start_date = datetime.now()
+    end_date = start_date + timedelta(days=30)  # Assuming a subscription lasts for 30 days
+    ''' active_subscription_list.objects.create(
+        user=request.user,
+        subscription_id=sub_id,
+        start_date=start_date,
+        end_date=end_date,
+        payment_id = payment,
+        email=email
+    )'''
+    try:
+        # Try to get the existing record
+        active_subscription = active_subscription_list.objects.get(email=email)
+        # If it exists, update the fields
+        active_subscription.start_date = start_date
+        active_subscription.end_date = end_date
+        active_subscription.subscription_id = sub_id
+        active_subscription.payment_id = payment
+        active_subscription.save()
+    except ObjectDoesNotExist:
+        # If it does not exist, create a new record
+        active_subscription_list.objects.create(
+            user=request.user,
+            email=email,
+            start_date=start_date,
+            end_date=end_date,
+            subscription_id=sub_id,
+            payment_id=payment
+        )
+
+
+    # Update the user's profile with the new subscription ID and set the p/remium status
+    user_profile = UserProfile.objects.get(user=request.user)
+    user_profile.subscription_id = sub_id
+    user_profile.is_premium = "YES"  # Assuming a successful checkout makes the user premium
+    user_profile.save()
+
+    return JsonResponse({'success': True, 'message': 'Checkout successful'})
