@@ -49,3 +49,8 @@ class active_subscription_list(models.Model):
     payment_id=models.ForeignKey(payments_transection,on_delete=models.SET_NULL,null=True)
 
 
+class Feedback(models.Model):
+    name = models.CharField(max_length=100)
+    email = models.EmailField()
+    subject = models.CharField(max_length=200)
+    message = models.TextField()

@@ -96,6 +96,18 @@ def payment(request):
 
     return render(request, 'payment.html')
 
+def handle_feedback(request):
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        email = request.POST.get('email')
+        subject = request.POST.get('subject')
+        message = request.POST.get('message')
+
+        feedback = Feedback(name=name, email=email, subject=subject, message=message)
+        feedback.save()
+
+        return JsonResponse({'success': True,'message': 'Feedback sent successfully'})
+
 
 @csrf_exempt
 @require_POST
