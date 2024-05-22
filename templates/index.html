@@ -25,28 +25,28 @@
           <div class="col-xl-3 col-md-6" data-aos="fade-up" data-aos-delay="100">
             <div class="icon-box">
               <div class="icon"><i class="bi bi-filetype-docx"></i></div>
-              <h4 class="title"><a href="" class="stretched-link">PDF to DOCX</a></h4>
+              <h4 class="title"><a href="{% url 'pdf_to_docx' %}" class="stretched-link">PDF to DOCX</a></h4>
             </div>
           </div><!--End Icon Box -->
 
           <div class="col-xl-3 col-md-6" data-aos="fade-up" data-aos-delay="200">
             <div class="icon-box">
               <div class="icon"><i class="bi bi-filetype-pptx"></i></div>
-              <h4 class="title"><a href="" class="stretched-link">PDF to PPTX</a></h4>
+              <h4 class="title"><a href="{% url 'pdf_to_ppt' %}" class="stretched-link">PDF to PPTX</a></h4>
             </div>
           </div><!--End Icon Box -->
 
           <div class="col-xl-3 col-md-6" data-aos="fade-up" data-aos-delay="300">
             <div class="icon-box">
               <div class="icon"><i class="bi bi-filetype-xlsx"></i></div>
-              <h4 class="title"><a href="" class="stretched-link">Table Extraction</a></h4>
+              <h4 class="title"><a href="{% url 'pdf_to_excel' %}" class="stretched-link">Table Extraction</a></h4>
             </div>
           </div><!--End Icon Box -->
 
           <div class="col-xl-3 col-md-6" data-aos="fade-up" data-aos-delay="500">
             <div class="icon-box">
               <div class="icon"><i class="bi bi-filetype-jpg"></i></div>
-              <h4 class="title"><a href="" class="stretched-link">IMG to PDF</a></h4>
+              <h4 class="title"><a href="{% url 'img_to_pdf' %}" class="stretched-link">IMG to PDF</a></h4>
             </div>
           </div><!--End Icon Box -->
 
@@ -289,10 +289,10 @@
               <div class="testimonial-wrap">
                 <div class="testimonial-item">
                   <div class="d-flex align-items-center">
-                    <img src="{% static 'assets/img/testimonials/testimonials-3.jpg' %}" class="testimonial-img flex-shrink-0" alt="">
+                    <img src="{% static 'assets/img/testimonials/testimonials-3.png' %}" class="testimonial-img flex-shrink-0" alt="">
                     <div>
-                      <h3>Jena Karlis</h3>
-                      <h4>Store Owner</h4>
+                      <h3>Avadhut Shirsekar</h3>
+                      <h4>NCC Student</h4>
                       <div class="stars">
                         <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
                       </div>
@@ -300,7 +300,7 @@
                   </div>
                   <p>
                     <i class="bi bi-quote quote-icon-left"></i>
-                    Enim nisi quem export duis labore cillum quae magna enim sint quorum nulla quem veniam duis minim tempor labore quem eram duis noster aute amet eram fore quis sint minim.
+                    Being an NCC student, I need to stay organized with all the drill schedules, camp permissions, and other documents. File Ninja has been a lifesaver! It lets me upload everything in one place.
                     <i class="bi bi-quote quote-icon-right"></i>
                   </p>
                 </div>
@@ -311,10 +311,10 @@
               <div class="testimonial-wrap">
                 <div class="testimonial-item">
                   <div class="d-flex align-items-center">
-                    <img src="{% static 'assets/img/testimonials/testimonials-4.jpg' %}" class="testimonial-img flex-shrink-0" alt="">
+                    <img src="{% static 'assets/img/testimonials/testimonials-4.png' %}" class="testimonial-img flex-shrink-0" alt="">
                     <div>
-                      <h3>Matt Brandon</h3>
-                      <h4>Freelancer</h4>
+                      <h3>Rajkumar Maskar</h3>
+                      <h4>BCS Student</h4>
                       <div class="stars">
                         <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
                       </div>
@@ -322,7 +322,7 @@
                   </div>
                   <p>
                     <i class="bi bi-quote quote-icon-left"></i>
-                    Fugiat enim eram quae cillum dolore dolor amet nulla culpa multos export minim fugiat minim velit minim dolor enim duis veniam ipsum anim magna sunt elit fore quem dolore.
+                    File Ninja is a lifesaver for busy BCS students like myself.  It's like having a swiss army knife for my digital files. I can use it to compress large presentations before submitting them online, merge multiple documents into one for easier referencing.
                     <i class="bi bi-quote quote-icon-right"></i>
                   </p>
                 </div>
@@ -333,7 +333,7 @@
               <div class="testimonial-wrap">
                 <div class="testimonial-item">
                   <div class="d-flex align-items-center">
-                    <img src="{% static 'assets/img/testimonials/testimonials-5.jpg' %}" class="testimonial-img flex-shrink-0" alt="">
+                    <img src="{% static 'assets/img/testimonials/testimonials-5.png' %}" class="testimonial-img flex-shrink-0" alt="">
                     <div>
                       <h3>Ranvir Bodhale</h3>
                       <h4>MCA Student</h4>
@@ -718,47 +718,47 @@ buyButtons.forEach(function(button) {
 });
 
  document.getElementById('feedback-form').addEventListener('submit', function(event) {
-        event.preventDefault();
+  event.preventDefault();
 
-        // Show the loading message
-        document.querySelector('.loading').style.display = 'block';
+  // Show the loading message
+  document.querySelector('.loading').style.display = 'block';
 
-        var formData = new FormData(this);
-        console.log("data sent")
-        fetch(this.action, {
-            method: 'POST',
-            body: formData
-        })
-            
-        .then(response => response.json())
-        .then(data => {
-            console.log("in the feedback form success")
-            // Hide the loading message
-            document.querySelector('.loading').style.display = 'none';
+  var formData = new FormData(this);
+  console.log("data sent");
 
-            if (data.success) {
-                console.log("success feedback")
-                // Show the success message
-                document.querySelector('.sent-message').textContent = data.message; // Display success message
-                document.querySelector('.sent-message').style.display = 'block';
-            } else {
-                // Show the error message
-                console.log("error feedback")
-                document.querySelector('.error-message').textContent = 'An error occurred: ' + data.message;
-                document.querySelector('.error-message').style.display = 'block';
-            }
+  fetch(this.action, {
+    method: 'POST',
+    body: formData
+  })
+  .then(response => response.json())
+  .then(data => {
+    console.log("in the feedback form success");
+    // Hide the loading message
+    document.querySelector('.loading').style.display = 'none';
+    console.log("Mssssheawd - ".data)
+    if (data.success==="True") { // Check for success property in response
+      console.log("success feedback");
+      // Show the success message
+      document.querySelector('.sent-message').textContent = data.message; // Display success message
+      document.querySelector('.sent-message').style.display = 'block';
+    } else {
+      // Show the error message
+      console.log("error feedback");
+      document.querySelector('.error-message').textContent = 'An error occurred: ' + data.message;
+      document.querySelector('.error-message').style.display = 'block';
+    }
 
-            this.reset();  // clear the form
-        })
-        .catch(error => {
-            // Hide the loading message
-            document.querySelector('.loading').style.display = 'none';
+    this.reset(); // clear the form
+  })
+  .catch(error => {
+    // Hide the loading message
+    document.querySelector('.loading').style.display = 'none';
 
-            // Show the error message
-            document.querySelector('.error-message').textContent = 'An error occurred: ' + error.message;
-            document.querySelector('.error-message').style.display = 'block';
-        });
-    });
+    // Show the error message (network errors or unexpected response)
+    document.querySelector('.error-message').textContent = 'An error occurred: ' + error.message;
+    document.querySelector('.error-message').style.display = 'block';
+  });
+});
 
     });
     </script>

@@ -105,7 +105,7 @@ def handle_feedback(request):
 
         feedback = Feedback(name=name, email=email, subject=subject, message=message)
         feedback.save()
-
+        print(JsonResponse({'success': True,'message': 'Feedback sent successfully'}))
         return JsonResponse({'success': True,'message': 'Feedback sent successfully'})
 
 
