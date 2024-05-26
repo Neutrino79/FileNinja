@@ -14,6 +14,7 @@ import json
 import img2pdf
 import pdfplumber
 import pandas as pd
+from PIL import Image, ImageOps
 
 
 
@@ -242,7 +243,6 @@ def pdf_to_image(request):
     return JsonResponse({'message': 'PDF to image conversion completed.'})
 
 
-
 @csrf_exempt
 def img_to_pdf(request):
     if request.method == 'POST':
@@ -252,34 +252,52 @@ def img_to_pdf(request):
             images.sort(key=lambda image: image['order'])
 
             # Create a temporary directory to store the PDF file
-            temp_dir = tempfile.mkdtemp(dir='/private/var/folders/h2/59vhr73s5t55sgq10fd9m8sc0000gn/T/File_Ninja_Temp')
-
-            # Define the path for the PDF file
+            temp_dir = tempfile.mkdtemp()
             pdf_path = os.path.join(temp_dir, 'output.pdf')
 
             # Create a list to store the image data
             img_data_list = []
 
             # Define the size of an A4 paper in pixels (at 300 DPI)
-            a4_size = (2480, 3508)
-            # Loop through the images
+            a4_width, a4_height = 2480, 3508
+
             for image in images:
                 try:
                     # Decode the base64 image
                     img_data = base64.b64decode(image['src'].split(',')[1])
                     img = Image.open(io.BytesIO(img_data))
 
-                    # Check if the rotation angle is 'none' before parsing it as a float and rotating the image
-                    angle = image['angle'].replace('rotate(', '').replace('deg)', '')
+                    # Rotate the image if an angle is provided
+                    angle = image['angle']
                     if angle != 'none':
-                        angle = float(angle)
-                        img = img.rotate(-angle)
+                        img = img.rotate(-angle, expand=True)
 
-                    # Resize and center the image as before...
+                    # Resize the image to fit within the A4 size while maintaining aspect ratio
+                    img_ratio = img.width / img.height
+                    a4_ratio = a4_width / a4_height
 
-                    # Convert the image to bytes and add it to the list
+                    if img_ratio > a4_ratio:
+                        # Image is wider relative to A4
+                        new_width = a4_width
+                        new_height = int(new_width / img_ratio)
+                    else:
+                        # Image is taller relative to A4
+                        new_height = a4_height
+                        new_width = int(new_height * img_ratio)
+
+                    img = img.resize((new_width, new_height), Image.Resampling.LANCZOS)
+
+                    # Create an A4-sized blank canvas
+                    canvas = Image.new('RGB', (a4_width, a4_height), (255, 255, 255))
+
+                    # Calculate the position to paste the image (top-left corner)
+                    x = (a4_width - new_width) // 2
+                    y = (a4_height - new_height) // 2
+                    canvas.paste(img, (x, y))
+
+                    # Convert the canvas to bytes and add it to the list
                     byte_arr = io.BytesIO()
-                    img.save(byte_arr, format='PNG')
+                    canvas.save(byte_arr, format='PNG')
                     img_data_list.append(byte_arr.getvalue())
                 except Exception as e:
                     print(f"Error processing image: {e}")
