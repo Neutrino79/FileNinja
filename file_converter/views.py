@@ -262,7 +262,6 @@ def img_to_pdf(request):
 
             # Define the size of an A4 paper in pixels (at 300 DPI)
             a4_size = (2480, 3508)
-
             # Loop through the images
             for image in images:
                 try:
@@ -287,23 +286,26 @@ def img_to_pdf(request):
 
             # Convert the images to PDF
             with open(pdf_path, "wb") as f:
-                f.write(img2pdf.convert(img_data_list))
+                if img_data_list:
+                    f.write(img2pdf.convert(img_data_list))
+                else:
+                    print("No images to convert")
 
-                # Open the PDF file in binary mode
-                pdf_file = open(pdf_path, 'rb')
+            # Open the PDF file in binary mode
+            pdf_file = open(pdf_path, 'rb')
 
-                # Create a FileResponse from the PDF file
-                response = FileResponse(pdf_file, content_type='application/pdf')
+            # Create a FileResponse from the PDF file
+            response = FileResponse(pdf_file, content_type='application/pdf')
 
-                # Set the Content-Disposition header to make the browser download the file
-                response['Content-Disposition'] = f'attachment; filename="{os.path.basename(pdf_path)}"'
+            # Set the Content-Disposition header to make the browser download the file
+            response['Content-Disposition'] = f'attachment; filename="{os.path.basename(pdf_path)}"'
 
-                # Return the response
-                return response
+            # Return the response
+            return response
         else:
             return JsonResponse({'error': 'Images not provided.'}, status=400)
     else:
-            return render(request, 'file_converter/img_to_pdf.html')
+        return render(request, 'file_converter/img_to_pdf.html')
 
 
 ''''@csrf_exempt
